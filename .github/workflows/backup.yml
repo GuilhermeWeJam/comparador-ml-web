@@ -1,0 +1,29 @@
+# Cópia semanal do banco (estrutura e dados), guardada por 90 dias nos "Artifacts" da execução.
+# Precisa do segredo SUPABASE_DB_URL (veja o LEIA-ME, passo 8).
+name: Backup semanal
+
+on:
+  schedule:
+    - cron: '43 6 * * 1'
+  workflow_dispatch:
+
+jobs:
+  backup:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: supabase/setup-cli@v1
+        with:
+          version: latest
+      - name: Copiar o banco
+        env:
+          SUPABASE_DB_URL: ${{ secrets.SUPABASE_DB_URL }}
+        run: |
+          if [ -z "$SUPABASE_DB_URL" ]; then echo "Falta o segredo SUPABASE_DB_URL"; exit 1; fi
+          mkdir backup
+          supabase db dump --db-url "$SUPABASE_DB_URL" -f backup/estrutura.sql
+          supabase db dump --db-url "$SUPABASE_DB_URL" --data-only -f backup/dados.sql
+      - uses: actions/upload-artifact@v4
+        with:
+          name: backup-${{ github.run_number }}
+          path: backup
+          retention-days: 90

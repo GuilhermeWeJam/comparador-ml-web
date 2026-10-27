@@ -1,0 +1,20 @@
+# O Supabase gratuito pausa o projeto depois de 1 semana sem uso.
+# Esta rotina faz uma consulta leve a cada 3 dias para ele continuar ativo.
+name: Manter Supabase ativo
+
+on:
+  schedule:
+    - cron: '17 12 */3 * *'
+  workflow_dispatch:
+
+jobs:
+  consultar:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Consulta leve
+        env:
+          URL: ${{ vars.VITE_SUPABASE_URL }}
+          CHAVE: ${{ vars.VITE_SUPABASE_ANON_KEY }}
+        run: |
+          curl -fsS -X POST "$URL/rest/v1/rpc/manter_ativo" \
+            -H "apikey: $CHAVE" -H "Content-Type: application/json" -d '{}'
