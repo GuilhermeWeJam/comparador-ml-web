@@ -2,7 +2,7 @@
 import { useCallback, useEffect, useState } from 'react';
 
 export interface Rota {
-  pagina: string; // "", "importar", "produtos", "kits", "config"
+  pagina: string; // "", "importar", "produtos", "kits", "aprovados", "config"
   params: URLSearchParams;
 }
 

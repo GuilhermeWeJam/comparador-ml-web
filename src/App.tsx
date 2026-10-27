@@ -24,6 +24,7 @@ export function App() {
   switch (rota.pagina) {
     case 'importar': pagina = <Importar />; break;
     case 'produtos': pagina = semProdutos ? <Importar /> : <Produtos aba="produtos" />; break;
+    case 'aprovados': pagina = semProdutos ? <Importar /> : <Produtos aba="aprovados" />; break;
     case 'kits': pagina = semProdutos ? <Importar /> : <Produtos aba="kits" />; break;
     case 'config': pagina = <Configuracoes />; break;
     default: pagina = semProdutos ? <Importar /> : <Inicio />;

@@ -31,12 +31,13 @@ const ORDENS: Record<string, { rotulo: string; valor: (l: Linha) => number | str
   nome: { rotulo: 'Nome', valor: (l) => semAcento(l.item.nome), dir: 'asc' },
 };
 
-function filtrar(linhas: Linha[], p: URLSearchParams): Linha[] {
+function filtrar(linhas: Linha[], p: URLSearchParams, aba: string): Linha[] {
   const g = (k: string) => p.get(k) || '';
   const q = semAcento(g('q'));
   const num = (k: string) => (g(k) ? Number(g(k).replace(',', '.')) : NaN);
   const cmin = num('cmin'), cmax = num('cmax'), pmin = num('pmin'), pmax = num('pmax');
-  const mostrar = g('mostrar') || 'ativos';
+  // na aba Aprovados nada é escondido por tamanho: o que foi aprovado fica na lista
+  const mostrar = aba === 'aprovados' ? 'todos' : g('mostrar') || 'ativos';
   let out = linhas.filter((l) => {
     const pr = l.item.produto;
     if (mostrar === 'ativos' && (l.situacao === 'reprovado' || l.a.foraDoTamanho)) return false;
@@ -96,12 +97,14 @@ function lerOcultas(): string[] {
   try { return JSON.parse(localStorage.getItem('colunas-ocultas') || 'null') || COLUNAS_OCULTAS_PADRAO; } catch { return COLUNAS_OCULTAS_PADRAO; }
 }
 
-export function Produtos({ aba }: { aba: 'produtos' | 'kits' }) {
+export function Produtos({ aba }: { aba: 'produtos' | 'kits' | 'aprovados' }) {
   const { params, mudarParams } = useRota();
   const dados = useDados();
   const linhas = useLinhas();
-  const base = aba === 'kits' ? linhas.kits : linhas.unidades;
-  const lista = useMemo(() => filtrar(base, params), [base, params]);
+  // aprovados: unidades e kits aprovados, inclusive os que ficaram indisponíveis ou saíram da planilha
+  const aprovados = useMemo(() => [...linhas.porId.values()].filter((l) => l.situacao === 'aprovado'), [linhas.porId]);
+  const base = aba === 'aprovados' ? aprovados : aba === 'kits' ? linhas.kits : linhas.unidades;
+  const lista = useMemo(() => filtrar(base, params, aba), [base, params, aba]);
   const [selecionados, setSelecionados] = useState<string[]>([]);
   const [fila, setFila] = useState<string[] | null>(null);
   const [comparar, setComparar] = useState(false);
@@ -176,16 +179,17 @@ export function Produtos({ aba }: { aba: 'produtos' | 'kits' }) {
   const menuExportar = useRef<HTMLDetailsElement>(null);
   const virtual = useVirtualizer({ count: lista.length, getScrollElement: () => scroller.current, estimateSize: () => 76, overscan: 12, getItemKey: (i: number) => lista[i].id });
 
-  const aprovados = [...linhas.unidades, ...linhas.kits].filter((l) => l.situacao === 'aprovado');
   const selLinhas = selecionados.map((id) => linhas.porId.get(id)).filter(Boolean) as Linha[];
 
   return (
     <div className="grid gap-3">
       <div className="flex flex-wrap items-end justify-between gap-3">
         <div>
-          <h1 className="text-xl font-semibold">{aba === 'kits' ? 'Kits recomendados' : 'Produtos'}</h1>
+          <h1 className="text-xl font-semibold">{aba === 'aprovados' ? 'Aprovados' : aba === 'kits' ? 'Kits recomendados' : 'Produtos'}</h1>
           <p className="text-sm text-slate-600">
-            {aba === 'kits'
+            {aba === 'aprovados'
+              ? 'Tudo o que vocês aprovaram, unidades e kits. Abra um item para ver a conta, ajustar o preço ou desfazer a decisão.'
+              : aba === 'kits'
               ? 'Produtos que vendem melhor em 2 ou mais unidades: o kit divide o custo fixo de envio. Troque a quantidade na linha.'
               : 'Só produtos disponíveis. Comece pela nota de triagem e pesquise o concorrente dos melhores.'}
           </p>
@@ -199,7 +203,7 @@ export function Produtos({ aba }: { aba: 'produtos' | 'kits' }) {
           <details className="relative" ref={menuExportar}>
             <summary className="cursor-pointer list-none rounded-lg border border-slate-300 bg-white px-3.5 py-2 text-sm font-medium hover:bg-slate-50">Exportar ▾</summary>
             <div className="absolute right-0 z-20 mt-1 grid w-60 gap-1 rounded-lg border border-slate-200 bg-white p-2 shadow-lg">
-              {([['Aprovados', aprovados, 'aprovados'], ['Esta lista', lista, aba === 'kits' ? 'kits' : 'produtos']] as [string, Linha[], string][]).flatMap(([rot, itens, nome]) =>
+              {([['Aprovados', aprovados, 'aprovados'], ['Esta lista', lista, aba === 'kits' ? 'kits' : 'produtos']] as [string, Linha[], string][]).filter(([rot]) => aba !== 'aprovados' || rot === 'Aprovados').flatMap(([rot, itens, nome]) =>
                 (['xlsx', 'csv'] as const).map((fmt) => (
                   <button key={rot + fmt} type="button" className="rounded px-2 py-1.5 text-left text-sm hover:bg-slate-100"
                     onClick={() => { exportar(itens, fmt, nome); if (menuExportar.current) menuExportar.current.open = false; }}>
@@ -211,7 +215,7 @@ export function Produtos({ aba }: { aba: 'produtos' | 'kits' }) {
         </div>
       </div>
 
-      <Filtros base={base} params={params} mudar={mudarParams} aberto={verFiltros} alternar={() => setVerFiltros((v) => !v)} />
+      <Filtros aba={aba} base={base} params={params} mudar={mudarParams} aberto={verFiltros} alternar={() => setVerFiltros((v) => !v)} />
 
       <div className="flex flex-wrap items-center justify-between gap-2 text-sm">
         <div className="text-slate-600"><b className="text-slate-900">{lista.length.toLocaleString('pt-BR')}</b> de {base.length.toLocaleString('pt-BR')} itens{params.get('top') && ' (Top 20)'}</div>
@@ -333,8 +337,8 @@ function CelulaConcorrente({ l, pesquisar }: { l: Linha; pesquisar: () => void }
   );
 }
 
-function Filtros({ base, params, mudar, aberto, alternar }: {
-  base: Linha[]; params: URLSearchParams; mudar: (m: Record<string, string | null>) => void; aberto: boolean; alternar: () => void;
+function Filtros({ base, params, mudar, aberto, alternar, aba }: {
+  aba: string; base: Linha[]; params: URLSearchParams; mudar: (m: Record<string, string | null>) => void; aberto: boolean; alternar: () => void;
 }) {
   const { comissoes } = useDados();
   const g = (k: string) => params.get(k) || '';
@@ -383,7 +387,7 @@ function Filtros({ base, params, mudar, aberto, alternar }: {
           {sel('pesq', 'Pesquisa', [['pendente', 'Pendente'], ['feita', 'Feita'], ['vencida', 'Vencida'], ['nao_encontrado', 'Não encontrado']])}
           {sel('alerta', 'Alertas', [['nenhum', 'Sem alerta'], ...alertas.map((a) => [a, a] as [string, string])])}
           {sel('origem', 'Origem e mudanças', [['planilha', 'Da planilha'], ['manual', 'Criados à mão'], ['novo', 'Novos na última importação'], ['subiu', 'Custo subiu'], ['caiu', 'Custo caiu']])}
-          {sel('mostrar', 'Mostrar', [['reprovados', 'Só reprovados'], ['tamanho', 'Só acima do tamanho'], ['todos', 'Tudo (inclui reprovados e grandes)']], 'Ativos (padrão)')}
+          {aba !== 'aprovados' && sel('mostrar', 'Mostrar', [['reprovados', 'Só reprovados'], ['tamanho', 'Só acima do tamanho'], ['todos', 'Tudo (inclui reprovados e grandes)']], 'Ativos (padrão)')}
         </div>
       )}
     </div>
