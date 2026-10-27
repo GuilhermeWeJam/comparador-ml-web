@@ -13,6 +13,9 @@ export interface Premissas {
 }
 
 /** Configurações gerais do sistema (linha única da tabela `configuracoes`). */
+/** Peso que entra na tabela de frete: só o peso informado ('real') ou o maior entre o real e o cúbico ('cubico'). */
+export type ModoPesoFrete = 'real' | 'cubico';
+
 export interface Configuracoes {
   margemDesejada: number;
   margemMinima: number;
@@ -23,6 +26,7 @@ export interface Configuracoes {
   ocultarAcimaDoLado: boolean;
   ladoMaxCm: number;
   validadePesquisaDias: number;
+  pesoFreteModo: ModoPesoFrete;
   pesos: Pesos;
 }
 
@@ -94,7 +98,7 @@ export interface Item {
   nomeOriginal: string;
   produto: Produto;
   custo: number;
-  peso: number; // peso para frete (maior entre real e cúbico), já multiplicado no kit
+  peso: number; // peso para frete (conforme a configuração: peso informado ou o maior entre real e cúbico), já multiplicado no kit
   custoUnit: number;
   pesoUnit: number;
 }

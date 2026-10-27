@@ -16,7 +16,7 @@ export function MontarKit({ linha, ctx, fechar }: { linha: Linha; ctx: Contexto;
     const ladoMax = ctx.config.ocultarAcimaDoLado ? ctx.config.ladoMaxCm : 0;
     const com = linha.a.comissao;
     const prem = premissasPara(ctx.config, ctx.config.tipoAnuncioPadrao === 'premium' ? com.premium : com.classico);
-    return opcoesKit(p, prem, ctx.tabela, ladoMax).map((o) => ({ o, a: analisarItem(montarItem(p, o.q), ctx) }));
+    return opcoesKit(p, prem, ctx.tabela, ladoMax, ctx.config.pesoFreteModo).map((o) => ({ o, a: analisarItem(montarItem(p, o.q, ctx.config.pesoFreteModo), ctx) }));
   }, [p, ctx, linha.a.comissao]);
 
   async function escolher(q: number) {

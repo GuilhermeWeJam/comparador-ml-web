@@ -46,12 +46,12 @@ function Premissas() {
   const novo: Config = {
     ...config,
     margemDesejada: lerPct(v.margemDesejada), margemMinima: lerPct(v.margemMinima), imposto: lerPct(v.imposto), reserva: lerPct(v.reserva), ads: lerPct(v.ads),
-    tipoAnuncioPadrao: v.tipo === 'premium' ? 'premium' : 'classico', ocultarAcimaDoLado: v.ocultar, ladoMaxCm: lerNumero(v.lado), validadePesquisaDias: Math.round(lerNumero(v.validade)),
+    tipoAnuncioPadrao: v.tipo === 'premium' ? 'premium' : 'classico', ocultarAcimaDoLado: v.ocultar, ladoMaxCm: lerNumero(v.lado), validadePesquisaDias: Math.round(lerNumero(v.validade)), pesoFreteModo: v.pesoModo === 'cubico' ? 'cubico' : 'real',
   };
   const valido = [novo.margemDesejada, novo.margemMinima, novo.imposto, novo.reserva, novo.ads].every((x) => x >= 0 && x < 0.9) && novo.ladoMaxCm > 0 && novo.validadePesquisaDias > 0 && novo.margemMinima <= novo.margemDesejada;
   return (
     <Cartao titulo="Premissas e regra de tamanho" acoes={<Botao variante="primario" disabled={!valido || salvando} onClick={() => salvar(() => salvarConfig(novo), 'Premissas salvas.')}>Salvar</Botao>}>
-      <div className="grid grid-cols-2 gap-3 sm:grid-cols-4 lg:grid-cols-8">
+      <div className="grid grid-cols-2 gap-3 sm:grid-cols-4 lg:grid-cols-9">
         <Campo rotulo="Margem desejada (%)" dica="define o preço de venda"><input className={classeInput} value={v.margemDesejada} onChange={set('margemDesejada')} data-campo="margemDesejada" /></Campo>
         <Campo rotulo="Margem mínima (%)" dica="abaixo disso, não compensa"><input className={classeInput} value={v.margemMinima} onChange={set('margemMinima')} /></Campo>
         <Campo rotulo="Imposto (%)" dica="Simples Nacional"><input className={classeInput} value={v.imposto} onChange={set('imposto')} /></Campo>
@@ -61,6 +61,12 @@ function Premissas() {
           <select className={classeInput} value={v.tipo} onChange={set('tipo')}><option value="classico">Clássico</option><option value="premium">Premium</option></select>
         </Campo>
         <Campo rotulo="Validade da pesquisa (dias)"><input className={classeInput} value={v.validade} onChange={set('validade')} /></Campo>
+        <Campo rotulo="Peso usado no frete" dica="qual peso entra na tabela do ML">
+          <select className={classeInput} value={v.pesoModo} onChange={set('pesoModo')} data-campo="pesoModo">
+            <option value="real">Só o peso do produto</option>
+            <option value="cubico">Maior entre real e cúbico</option>
+          </select>
+        </Campo>
         <Campo rotulo="Maior lado aceito (cm)">
           <input className={classeInput} value={v.lado} onChange={set('lado')} data-campo="lado" />
         </Campo>
@@ -76,7 +82,7 @@ function Premissas() {
 function paraTexto(c: Config) {
   return {
     margemDesejada: pctTxt(c.margemDesejada), margemMinima: pctTxt(c.margemMinima), imposto: pctTxt(c.imposto), reserva: pctTxt(c.reserva), ads: pctTxt(c.ads),
-    tipo: c.tipoAnuncioPadrao as string, ocultar: c.ocultarAcimaDoLado, lado: String(c.ladoMaxCm), validade: String(c.validadePesquisaDias),
+    tipo: c.tipoAnuncioPadrao as string, ocultar: c.ocultarAcimaDoLado, lado: String(c.ladoMaxCm), validade: String(c.validadePesquisaDias), pesoModo: c.pesoFreteModo as string,
   };
 }
 
@@ -237,7 +243,7 @@ function Frete() {
       {aberto && <Botao onClick={() => setT(FRETE_PADRAO)}>Voltar à tabela oficial de 2026</Botao>}
       {aberto && <Botao variante="primario" disabled={salvando} onClick={() => salvar(() => salvarFrete(t), 'Tabela de frete salva.')}>Salvar</Botao>}
     </>}>
-      <p className="text-sm text-slate-600">Versão {tabela.versao || '—'}: custo de envio que o ML desconta do vendedor, pela faixa de peso (o maior entre o real e o cúbico) e de preço. Reputação verde ou sem reputação. Abaixo de R$ 19, no máximo metade do preço.</p>
+      <p className="text-sm text-slate-600">Versão {tabela.versao || '—'}: custo de envio que o ML desconta do vendedor, pela faixa de peso (conforme a opção “Peso usado no frete” em Premissas) e de preço. Reputação verde ou sem reputação. Abaixo de R$ 19, no máximo metade do preço.</p>
       {aberto && (
         <div className="mt-3 overflow-x-auto">
           <table className="text-xs" key={t.versao}>

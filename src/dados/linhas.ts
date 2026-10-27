@@ -65,7 +65,7 @@ export function calcularLinhas(dados: Dados, agora = Date.now()): Linhas {
   for (const p of produtosAtivos) {
     const com = comissaoDe(p.categoria, ctx);
     const prem = premissasPara(cfg, cfg.tipoAnuncioPadrao === 'premium' ? com.premium : com.classico);
-    const r = analisarKit(p, prem, dados.tabela, ladoMax);
+    const r = analisarKit(p, prem, dados.tabela, ladoMax, cfg.pesoFreteModo);
     if (r) kitRec.set(p.sku, r);
   }
   const skusEmKits = new Set(kitRec.keys());
@@ -100,7 +100,7 @@ export function calcularLinhas(dados: Dados, agora = Date.now()): Linhas {
     };
   }
 
-  const unidades = produtosAtivos.map((p) => linha(montarItem(p, 1), kitRec.get(p.sku) || null, null));
+  const unidades = produtosAtivos.map((p) => linha(montarItem(p, 1, cfg.pesoFreteModo), kitRec.get(p.sku) || null, null));
 
   // kits: recomendados, montados por vocês, e kits com decisão cujo produto ainda está na lista
   const kitsIds = new Map<string, { p: Produto; q: number; tipo: 'recomendado' | 'montado' }>();
@@ -113,7 +113,7 @@ export function calcularLinhas(dados: Dados, agora = Date.now()): Linhas {
   const kits: Linha[] = [];
   const vistos = new Set<string>();
   for (const { p, q, tipo } of kitsIds.values()) {
-    const l = linha(montarItem(p, q), null, tipo);
+    const l = linha(montarItem(p, q, cfg.pesoFreteModo), null, tipo);
     kits.push(l);
     vistos.add(l.id);
   }
@@ -122,7 +122,7 @@ export function calcularLinhas(dados: Dados, agora = Date.now()): Linhas {
     if (q < 2 || vistos.has(id)) continue;
     const p = dados.produtos.get(sku);
     const ultima = decPorItem.get(id)!.slice(-1)[0];
-    if (p && p.ativo && ultima.decisao === 'aprovado') { kits.push(linha(montarItem(p, q), null, 'montado')); vistos.add(id); }
+    if (p && p.ativo && ultima.decisao === 'aprovado') { kits.push(linha(montarItem(p, q, cfg.pesoFreteModo), null, 'montado')); vistos.add(id); }
   }
 
   // aprovados fora da lista (indisponíveis ou fora da planilha) só aparecem na fila Revisar
@@ -132,7 +132,7 @@ export function calcularLinhas(dados: Dados, agora = Date.now()): Linhas {
     if (ultima.decisao !== 'aprovado') continue;
     const { sku, q } = lerItemId(id);
     const p = dados.produtosFora.get(sku);
-    if (p) fora.push(linha(montarItem(p, q), null, q > 1 ? 'montado' : null, true));
+    if (p) fora.push(linha(montarItem(p, q, cfg.pesoFreteModo), null, q > 1 ? 'montado' : null, true));
   }
 
   const porId = new Map<string, Linha>();

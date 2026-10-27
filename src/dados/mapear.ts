@@ -109,6 +109,7 @@ export function configDe(r: Linha | null): Configuracoes {
     ocultarAcimaDoLado: r.ocultar_acima_do_lado !== false,
     ladoMaxCm: Number(r.lado_max_cm),
     validadePesquisaDias: Number(r.validade_pesquisa_dias) || 30,
+    pesoFreteModo: r.peso_frete_modo === 'cubico' ? 'cubico' : 'real',
     pesos: pesosDe(r.pesos),
   };
 }
@@ -124,6 +125,7 @@ export function linhaDaConfig(c: Configuracoes): Linha {
     ocultar_acima_do_lado: c.ocultarAcimaDoLado,
     lado_max_cm: c.ladoMaxCm,
     validade_pesquisa_dias: c.validadePesquisaDias,
+    peso_frete_modo: c.pesoFreteModo,
     pesos: c.pesos,
   };
 }

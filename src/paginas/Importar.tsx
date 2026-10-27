@@ -104,7 +104,7 @@ export function Importar() {
             {!r.primeiraVez && <Lista titulo="Novos" cor="azul" itens={r.novos.map((l) => `${l.sku} · ${l.nome}`)} />}
             <Lista titulo="Categorias novas (usam a comissão padrão até você ligar em Configurações)" cor="laranja" itens={r.categoriasNovas} />
             <Lista titulo="SKUs repetidos (fica a primeira linha)" cor="cinza" itens={r.repetidos} />
-            <Lista titulo="Sem peso na planilha (o sistema usa o peso cúbico ou 0,5 kg)" cor="cinza" itens={r.pesoZero} />
+            <Lista titulo="Sem peso na planilha (o sistema usa 0,5 kg, ou o peso cúbico se estiver ligado em Configurações)" cor="cinza" itens={r.pesoZero} />
             <Lista titulo="SKU igual ao de um produto criado à mão (a linha da planilha é ignorada)" cor="vermelho" itens={r.conflitosManuais} />
           </div>
           <p className="mt-3 text-xs text-slate-500">

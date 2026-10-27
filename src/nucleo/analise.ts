@@ -22,6 +22,7 @@ export const CONFIG_PADRAO: Configuracoes = {
   ocultarAcimaDoLado: true,
   ladoMaxCm: 70,
   validadePesquisaDias: 30,
+  pesoFreteModo: 'real',
   pesos: PESOS_PADRAO,
 };
 

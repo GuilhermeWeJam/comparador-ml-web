@@ -40,7 +40,7 @@ export function NovoProduto({ ctx, editar, fechar }: { ctx: Contexto; editar?: P
     custoAnterior: null, custoMudouImportacao: null, pesoKg: peso, pesoCaixaKg: null, dims: dims as Dims, ean: v.ean.trim(),
     ncm: v.ncm.trim(), cest: '', imagemUrl: v.imagem.trim(), importacaoId: null, primeiraImportacaoId: null,
   } : null;
-  const previa = useMemo(() => (produto ? analisarItem(montarItem(produto, 1), ctx) : null), [produto, ctx]);
+  const previa = useMemo(() => (produto ? analisarItem(montarItem(produto, 1, ctx.config.pesoFreteModo), ctx) : null), [produto, ctx]);
 
   async function salvar() {
     if (!produto) return;

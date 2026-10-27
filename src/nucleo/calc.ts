@@ -1,5 +1,5 @@
 import { frete, FRETE_PADRAO } from './frete';
-import type { Dims, Premissas, TabelaFrete } from './tipos';
+import type { Dims, ModoPesoFrete, Premissas, TabelaFrete } from './tipos';
 
 export const LADO_PADRAO = 70;
 const LADO_SUSPEITO = 300; // cm: acima disso é erro de cadastro
@@ -59,12 +59,18 @@ export function descontoNecessario(custoAtual: number, teto: number): number {
   return teto <= 0 ? 1 : 1 - teto / custoAtual;
 }
 
-/** Peso usado no frete: o maior entre o peso real (ou da caixa) e o cúbico (L × A × C ÷ 6.000). */
-export function pesoFrete(pesoKg: number | null, pesoCaixaKg: number | null, dims: Dims | null): number {
+/**
+ * Peso usado no frete. Modo 'real' (padrão): só o peso informado (da caixa, se houver, senão do produto).
+ * Modo 'cubico': o maior entre o real e o cúbico (L × A × C ÷ 6.000). 0,5 kg se não houver nada.
+ */
+export function pesoFrete(pesoKg: number | null, pesoCaixaKg: number | null, dims: Dims | null = null, modo: ModoPesoFrete = 'real'): number {
   const real = pesoCaixaKg && pesoCaixaKg > 0 ? pesoCaixaKg : pesoKg && pesoKg > 0 ? pesoKg : 0;
-  // medidas acima de 200 cm são quase sempre erro de cadastro; não deixam o peso cúbico explodir
-  const d = dims ? dims.map((x) => Math.min(x || 0, 200)) : [0, 0, 0];
-  const cubico = (d[0] * d[1] * d[2]) / 6000;
+  let cubico = 0;
+  if (modo === 'cubico' && dims) {
+    // medidas acima de 200 cm são quase sempre erro de cadastro; não deixam o peso cúbico explodir
+    const d = dims.map((x) => Math.min(x || 0, 200));
+    cubico = (d[0] * d[1] * d[2]) / 6000;
+  }
   const peso = Math.max(real, cubico || 0);
   return Math.round((peso > 0 ? peso : 0.5) * 1000) / 1000;
 }

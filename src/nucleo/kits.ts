@@ -3,7 +3,7 @@
 // vendendo 2, 3 ou mais unidades juntas, ele é dividido.
 import { maiorLadoKit, precoParaMargem } from './calc';
 import { montarItem } from './itens';
-import type { Premissas, Produto, TabelaFrete } from './tipos';
+import type { ModoPesoFrete, Premissas, Produto, TabelaFrete } from './tipos';
 
 const CATEGORIAS_KIT = new Set([
   'Potes, Marmitas e Mantimentos', 'Copos, Jarras e Servir', 'Utensílios e Talheres', 'Organizadores e Cestos',
@@ -67,8 +67,8 @@ const fmt = (v: number) => v.toFixed(2).replace('.', ',');
 const brl = (v: number) => 'R$ ' + v.toFixed(2).replace('.', ',');
 
 /** Recomendação de kit para o produto, ou null se não vale a pena. `premissas` já com a comissão do produto. */
-export function analisarKit(p: Produto, premissas: Premissas, tabela: TabelaFrete, ladoMax: number): Recomendacao | null {
-  const unidade = montarItem(p, 1);
+export function analisarKit(p: Produto, premissas: Premissas, tabela: TabelaFrete, ladoMax: number, modo: ModoPesoFrete = 'real'): Recomendacao | null {
+  const unidade = montarItem(p, 1, modo);
   const nome = p.nome || '';
   const inicio = nome
     .replace(/^\s*(we ?drop\s*-\s*)?(kit|conjunto|jogo)?\s*(com|c\/)?\s*\d*\s*(un\w*|peças|pçs)?\s*/i, '')
@@ -109,8 +109,8 @@ export function analisarKit(p: Produto, premissas: Premissas, tabela: TabelaFret
 }
 
 /** Opções de kit para qualquer produto (Montar kit): limitadas só por 30 kg e pelo tamanho da caixa. */
-export function opcoesKit(p: Produto, premissas: Premissas, tabela: TabelaFrete, ladoMax: number): OpcaoKit[] {
-  const unidade = montarItem(p, 1);
+export function opcoesKit(p: Produto, premissas: Premissas, tabela: TabelaFrete, ladoMax: number, modo: ModoPesoFrete = 'real'): OpcaoKit[] {
+  const unidade = montarItem(p, 1, modo);
   const out: OpcaoKit[] = [];
   for (const q of QTDS_KIT) {
     if (q * unidade.peso > PESO_MAX_CORREIOS) break;

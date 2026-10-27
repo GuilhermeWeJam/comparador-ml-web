@@ -1,5 +1,5 @@
 import { pesoFrete } from './calc';
-import type { Item, Produto } from './tipos';
+import type { Item, ModoPesoFrete, Produto } from './tipos';
 
 export const SEP_KIT = '::kit';
 
@@ -38,8 +38,8 @@ export function pluralPrimeira(nome: string): string {
 }
 
 /** Monta o item (unidade ou kit de q unidades) a partir do produto. */
-export function montarItem(p: Produto, q = 1): Item {
-  const pesoUnit = pesoFrete(p.pesoKg, p.pesoCaixaKg, p.dims);
+export function montarItem(p: Produto, q = 1, modo: ModoPesoFrete = 'real'): Item {
+  const pesoUnit = pesoFrete(p.pesoKg, p.pesoCaixaKg, p.dims, modo);
   if (q <= 1) {
     return { id: p.sku, sku: p.sku, q: 1, nome: p.nome, nomeOriginal: p.nome, produto: p, custo: p.custo, peso: pesoUnit, custoUnit: p.custo, pesoUnit };
   }

@@ -61,11 +61,18 @@ describe('frete', () => {
     expect(frete(10, 0.2)).toBe(5);
     expect(frete(15, 12)).toBe(7.15);
   });
-  it('peso para frete é o maior entre real e cúbico, com 0,5 kg se não houver nada', () => {
-    expect(pesoFrete(0.355, null, [35, 6, 35])).toBe(1.225);
-    expect(pesoFrete(3.5, null, [10, 10, 10])).toBe(3.5);
-    expect(pesoFrete(null, null, null)).toBe(0.5);
-    expect(pesoFrete(1, 2, null)).toBe(2);
+  it('peso para frete é o peso informado (sem cúbico), com 0,5 kg se não houver nada', () => {
+    expect(pesoFrete(0.355, null)).toBe(0.355);
+    expect(pesoFrete(3.5, null)).toBe(3.5);
+    expect(pesoFrete(null, null)).toBe(0.5);
+    expect(pesoFrete(1, 2)).toBe(2);
+    expect(pesoFrete(0.355, null, [35, 6, 35])).toBe(0.355);
+  });
+
+  it('no modo cúbico, usa o maior entre real e cúbico', () => {
+    expect(pesoFrete(0.355, null, [35, 6, 35], 'cubico')).toBe(1.225);
+    expect(pesoFrete(3.5, null, [10, 10, 10], 'cubico')).toBe(3.5);
+    expect(pesoFrete(null, null, null, 'cubico')).toBe(0.5);
   });
   it('maior lado do kit escolhe o melhor empilhamento', () => {
     expect(maiorLadoKit([30, 20, 10] as Dims, 2)).toBe(30);
@@ -78,7 +85,7 @@ describe('preço Clássico e Premium', () => {
     const varal = analisarItem(montarItem(produto({ nome: 'Varal Redondo com 24 Prendedores', categoria: 'Lavanderia', custo: 29.99, pesoKg: 0.355, dims: [35, 6, 35] })), ctx);
     expect(varal.classico.preco).toBe(63.9);
     expect(varal.premium.preco).toBe(69.9);
-    expect(Math.round(varal.classico.conta.lucro * 100) / 100).toBe(12.8);
+    expect(Math.round(varal.classico.conta.lucro * 100) / 100).toBe(13.2);
     const brinq = analisarItem(montarItem(produto({ nome: 'Brinquedo Animal', categoria: 'Brinquedos', custo: 36.99, pesoKg: 0.225, dims: [1, 1, 1] })), ctx);
     expect(brinq.comissao.padrao).toBe(true);
     expect(brinq.classico.preco).toBe(76.9);
