@@ -206,6 +206,8 @@ export const anotacaoDe = (r: Linha): Anotacao => ({
   titulo: r.titulo ?? null,
   kitQtd: n(r.kit_qtd),
   kitMontado: !!r.kit_montado,
+  precoClassico: n(r.preco_classico),
+  precoPremium: n(r.preco_premium),
 });
 
 export const linhaDaAnotacao = (a: Anotacao): Linha => ({
@@ -214,4 +216,6 @@ export const linhaDaAnotacao = (a: Anotacao): Linha => ({
   titulo: a.titulo,
   kit_qtd: a.kitQtd,
   kit_montado: a.kitMontado,
+  preco_classico: a.precoClassico,
+  preco_premium: a.precoPremium,
 });

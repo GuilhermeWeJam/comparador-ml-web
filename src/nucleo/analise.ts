@@ -79,6 +79,7 @@ export interface Venda {
   preco: number; // preço sugerido (margem desejada)
   minimo: number; // preço mínimo (margem mínima)
   conta: Conta; // conta no preço sugerido
+  manual: boolean; // true = preço editado à mão, não o calculado pela margem
 }
 
 export interface AnaliseItem {
@@ -108,11 +109,17 @@ function nota(partes: Parte[], pesos: Pesos): Nota {
   return { total, faixa: faixaDe(total, pesos), partes };
 }
 
-function venda(item: Item, tipo: TipoAnuncio, com: ComissaoItem, ctx: Contexto): Venda {
+/** Preços de venda editados à mão para um item (null = usa o calculado pela margem desejada). */
+export interface PrecosManuais {
+  classico?: number | null;
+  premium?: number | null;
+}
+
+function venda(item: Item, tipo: TipoAnuncio, com: ComissaoItem, ctx: Contexto, manual?: number | null): Venda {
   const p = premissasPara(ctx.config, tipo === 'classico' ? com.classico : com.premium);
-  const preco = precoParaMargem(item.custo, item.peso, p.margemDesejada, p, ctx.tabela);
+  const preco = manual && manual > 0 ? manual : precoParaMargem(item.custo, item.peso, p.margemDesejada, p, ctx.tabela);
   const minimo = precoParaMargem(item.custo, item.peso, p.margemMinima, p, ctx.tabela);
-  return { preco, minimo, conta: contaVenda(preco, item.custo, item.peso, p, ctx.tabela) };
+  return { preco, minimo, manual: !!(manual && manual > 0), conta: contaVenda(preco, item.custo, item.peso, p, ctx.tabela) };
 }
 
 /** Frações (0 a 1) de logística e risco, usadas na triagem e na decisão. */
@@ -127,12 +134,12 @@ function logisticaRisco(item: Item, alertas: Alerta[]) {
 }
 
 /** Análise sem pesquisa: comissão, preços Clássico e Premium, tamanho, alertas e nota de triagem. */
-export function analisarItem(item: Item, ctx: Contexto): AnaliseItem {
+export function analisarItem(item: Item, ctx: Contexto, manuais: PrecosManuais = {}): AnaliseItem {
   const cfg = ctx.config;
   const w = cfg.pesos.triagem;
   const com = comissaoDe(item.produto.categoria, ctx);
-  const classico = venda(item, 'classico', com, ctx);
-  const premium = venda(item, 'premium', com, ctx);
+  const classico = venda(item, 'classico', com, ctx, manuais.classico);
+  const premium = venda(item, 'premium', com, ctx, manuais.premium);
   const ladoMax = cfg.ocultarAcimaDoLado ? cfg.ladoMaxCm : 0;
   const alertas = analisarAlertas(item, ladoMax);
   const tam = tamanho(item.produto.dims, ladoMax);

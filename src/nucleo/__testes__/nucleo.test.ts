@@ -94,6 +94,21 @@ describe('preço Clássico e Premium', () => {
   });
 });
 
+describe('preço editado à mão', () => {
+  it('recalcula comissão, frete, imposto e lucro com o preço informado', () => {
+    const it = montarItem(produto({ custo: 29.99, pesoKg: 0.355 }));
+    const base = analisarItem(it, ctx);
+    const man = analisarItem(it, ctx, { classico: 50, premium: 55 });
+    expect(man.classico.preco).toBe(50);
+    expect(man.classico.manual).toBe(true);
+    expect(man.premium.preco).toBe(55);
+    expect(man.classico.conta.comissao).toBeCloseTo(50 * base.comissao.classico, 6);
+    expect(man.classico.conta.lucro).toBeLessThan(base.classico.conta.lucro);
+    expect(man.classico.minimo).toBe(base.classico.minimo);
+    expect(base.classico.manual).toBe(false);
+  });
+});
+
 describe('nota de triagem', () => {
   it('soma 100 no máximo e explica cada critério', () => {
     const a = analisarItem(montarItem(produto({ custo: 60, pesoKg: 0.4 })), ctx);

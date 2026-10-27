@@ -154,4 +154,6 @@ export interface Anotacao {
   titulo: string | null;
   kitQtd: number | null;
   kitMontado: boolean;
+  precoClassico: number | null; // preço de venda editado à mão (null = calculado pela margem)
+  precoPremium: number | null;
 }

@@ -244,7 +244,7 @@ export function DadosProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const anotar = useCallback(async (itemId: string, mudanca: Partial<Anotacao>) => {
-    const atual = dadosRef.current.anotacoes.get(itemId) || { itemId, potencial: false, titulo: null, kitQtd: null, kitMontado: false };
+    const atual = dadosRef.current.anotacoes.get(itemId) || { itemId, potencial: false, titulo: null, kitQtd: null, kitMontado: false, precoClassico: null, precoPremium: null };
     const nova: Anotacao = { ...atual, ...mudanca, itemId };
     setDados((d) => {
       const anotacoes = new Map(d.anotacoes);

@@ -199,6 +199,7 @@ export function Detalhe({ linha, ctx, fechar, aoMontarKit, aoEditar }: {
             Preço mínimo (margem de {pct(ctx.config.margemMinima)}): Clássico {brl(a.classico.minimo)} · Premium {brl(a.premium.minimo)}.
             Comissão da categoria do ML <b>{a.comissao.categoriaMl}</b>{a.comissao.padrao ? ' (categoria sem ligação: usa o padrão)' : ''}.
           </p>
+          <PrecoManual key={`${item.id}-${linha.anot?.precoClassico}-${linha.anot?.precoPremium}`} linha={linha} ctx={ctx} />
           <div className="mt-3 flex flex-wrap items-center gap-2 text-sm">
             <label htmlFor="simulador" className="font-medium">Simular preço:</label>
             <input id="simulador" inputMode="decimal" className={`${classeInput} w-32`} value={simulado} onChange={(e) => setSimulado(e.target.value)} placeholder="R$" />
@@ -269,6 +270,42 @@ export function Detalhe({ linha, ctx, fechar, aoMontarKit, aoEditar }: {
         </Secao>
       </aside>
       {decisao && <Decidir linha={linha} acao={decisao} fechar={() => setDecisao(null)} />}
+    </div>
+  );
+}
+
+/** Edição do preço de venda só deste item: a conta (comissão, frete, imposto, lucro) é refeita com o preço digitado. */
+function PrecoManual({ linha, ctx }: { linha: Linha; ctx: Contexto }) {
+  const { anotar, avisar } = useDados();
+  const { a, anot, item } = linha;
+  const [pc, setPc] = useState(anot?.precoClassico ? String(anot.precoClassico).replace('.', ',') : '');
+  const [pp, setPp] = useState(anot?.precoPremium ? String(anot.precoPremium).replace('.', ',') : '');
+  const [salvando, setSalvando] = useState(false);
+  const vc = lerNumero(pc);
+  const vp = lerNumero(pp);
+  const valido = (s: string, v: number) => s.trim() === '' || v > 0;
+  const mudou = (anot?.precoClassico ?? null) !== (vc > 0 ? vc : null) || (anot?.precoPremium ?? null) !== (vp > 0 ? vp : null);
+  const editado = a.classico.manual || a.premium.manual;
+
+  async function salvar(novoC: number | null, novoP: number | null, msg: string) {
+    setSalvando(true);
+    try { await anotar(item.id, { precoClassico: novoC, precoPremium: novoP }); avisar(msg); } catch (e) { avisar('Erro ao salvar: ' + (e as Error).message); } finally { setSalvando(false); }
+  }
+
+  return (
+    <div className="mt-3 rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-sm">
+      <div className="mb-1 font-medium">Preço deste produto {editado && <Etiqueta cor="laranja">editado à mão</Etiqueta>}</div>
+      <p className="mb-2 text-xs text-slate-500">Digite o preço que quer praticar só neste item. Comissão, frete, imposto, reserva e lucro são recalculados. Em branco = preço calculado pela margem desejada ({pct(ctx.config.margemDesejada)}).</p>
+      <div className="flex flex-wrap items-end gap-3">
+        <label className="grid gap-0.5 text-xs text-slate-600">Clássico
+          <input inputMode="decimal" className={`${classeInput} w-28`} value={pc} onChange={(e) => setPc(e.target.value)} placeholder="calculado" data-campo="precoClassico" />
+        </label>
+        <label className="grid gap-0.5 text-xs text-slate-600">Premium
+          <input inputMode="decimal" className={`${classeInput} w-28`} value={pp} onChange={(e) => setPp(e.target.value)} placeholder="calculado" data-campo="precoPremium" />
+        </label>
+        <Botao pequeno variante="primario" disabled={salvando || !mudou || !valido(pc, vc) || !valido(pp, vp)} onClick={() => salvar(vc > 0 ? vc : null, vp > 0 ? vp : null, 'Preço salvo.')}>Salvar preço</Botao>
+        {editado && <Botao pequeno variante="fantasma" disabled={salvando} onClick={() => { setPc(''); setPp(''); salvar(null, null, 'Voltou ao preço calculado.'); }}>Voltar ao calculado</Botao>}
+      </div>
     </div>
   );
 }

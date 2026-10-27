@@ -71,13 +71,13 @@ export function calcularLinhas(dados: Dados, agora = Date.now()): Linhas {
   const skusEmKits = new Set(kitRec.keys());
 
   function linha(item: Item, rec: Recomendacao | null, tipoKit: Linha['tipoKit'], foraDaLista = false): Linha {
-    const a = analisarItem(item, ctx);
+    const anot = dados.anotacoes.get(item.id);
+    const a = analisarItem(item, ctx, { classico: anot?.precoClassico, premium: anot?.precoPremium });
     const pesquisas = pesqPorItem.get(item.id) || [];
     const decisoes = decPorItem.get(item.id) || [];
     const pesq = pesquisas[pesquisas.length - 1];
     const ultimaDec = decisoes[decisoes.length - 1];
     const dec = ultimaDec && ultimaDec.decisao !== 'desfeita' ? ultimaDec : undefined;
-    const anot = dados.anotacoes.get(item.id);
     const d = pesq ? analisarDecisao(a, pesq, ctx, item.q === 1 && skusEmKits.has(item.sku)) : undefined;
     const vencida = pesquisaVencida(pesq, cfg.validadePesquisaDias, agora);
     const statusPesquisa: StatusPesquisa = !pesq ? 'pendente' : vencida ? 'vencida' : pesq.naoEncontrado ? 'nao_encontrado' : 'feita';
