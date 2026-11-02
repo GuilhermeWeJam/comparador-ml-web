@@ -46,6 +46,7 @@ interface Contexto extends Dados {
   salvarPesquisa: (p: Pesquisa) => Promise<Pesquisa>;
   decidir: (d: Decisao) => Promise<Decisao>;
   anotar: (itemId: string, mudanca: Partial<Anotacao>) => Promise<void>;
+  anotarVarios: (itemIds: string[], mudanca: Partial<Anotacao>) => Promise<void>;
   salvarConfig: (c: Configuracoes) => Promise<void>;
   salvarComissao: (c: ComissaoMl, nomeAntigo?: string) => Promise<void>;
   excluirComissao: (nome: string) => Promise<void>;
@@ -244,7 +245,7 @@ export function DadosProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const anotar = useCallback(async (itemId: string, mudanca: Partial<Anotacao>) => {
-    const atual = dadosRef.current.anotacoes.get(itemId) || { itemId, potencial: false, titulo: null, kitQtd: null, kitMontado: false, precoClassico: null, precoPremium: null, fotos: null };
+    const atual = dadosRef.current.anotacoes.get(itemId) || { itemId, potencial: false, titulo: null, kitQtd: null, kitMontado: false, precoClassico: null, precoPremium: null, fotos: null, anuncio: null };
     const nova: Anotacao = { ...atual, ...mudanca, itemId };
     setDados((d) => {
       const anotacoes = new Map(d.anotacoes);
@@ -255,6 +256,29 @@ export function DadosProvider({ children }: { children: ReactNode }) {
     if (error) {
       setDados((d) => { const anotacoes = new Map(d.anotacoes); anotacoes.set(itemId, atual); return { ...d, anotacoes }; });
       throw new Error(error.message);
+    }
+  }, []);
+
+  // mesma mudança em vários itens de uma vez (um único envio ao banco)
+  const anotarVarios = useCallback(async (itemIds: string[], mudanca: Partial<Anotacao>) => {
+    if (!itemIds.length) return;
+    const antes = new Map(dadosRef.current.anotacoes);
+    const novas = itemIds.map((itemId): Anotacao => ({
+      ...(antes.get(itemId) || { itemId, potencial: false, titulo: null, kitQtd: null, kitMontado: false, precoClassico: null, precoPremium: null, fotos: null, anuncio: null }),
+      ...mudanca,
+      itemId,
+    }));
+    setDados((d) => {
+      const anotacoes = new Map(d.anotacoes);
+      for (const a of novas) anotacoes.set(a.itemId, a);
+      return { ...d, anotacoes };
+    });
+    for (let i = 0; i < novas.length; i += 500) {
+      const { error } = await supabase.from('anotacoes').upsert(novas.slice(i, i + 500).map(linhaDaAnotacao), { onConflict: 'item_id' });
+      if (error) {
+        setDados((d) => ({ ...d, anotacoes: antes }));
+        throw new Error(error.message);
+      }
     }
   }, []);
 
@@ -329,9 +353,9 @@ export function DadosProvider({ children }: { children: ReactNode }) {
   const sair = useCallback(async () => { await supabase.auth.signOut(); setEmail(null); }, []);
 
   const valor = useMemo<Contexto>(() => ({
-    ...dados, email, admin, carregando, erro, aviso, avisar, recarregar, sair, salvarPesquisa, decidir, anotar,
+    ...dados, email, admin, carregando, erro, aviso, avisar, recarregar, sair, salvarPesquisa, decidir, anotar, anotarVarios,
     salvarConfig, salvarComissao, excluirComissao, salvarCategoria, salvarFrete, salvarProduto,
-  }), [dados, email, admin, carregando, erro, aviso, avisar, recarregar, sair, salvarPesquisa, decidir, anotar,
+  }), [dados, email, admin, carregando, erro, aviso, avisar, recarregar, sair, salvarPesquisa, decidir, anotar, anotarVarios,
     salvarConfig, salvarComissao, excluirComissao, salvarCategoria, salvarFrete, salvarProduto]);
 
   return <Ctx.Provider value={valor}>{children}</Ctx.Provider>;

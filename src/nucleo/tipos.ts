@@ -1,6 +1,8 @@
 // Tipos compartilhados pelo núcleo de cálculo (sem React e sem Supabase).
 
 export type TipoAnuncio = 'classico' | 'premium';
+/** Tipo de anúncio escolhido para um item aprovado: um dos dois ou os dois (dois anúncios). */
+export type AnuncioMl = 'classico' | 'premium' | 'ambos';
 
 /** Premissas de uma conta de venda. A comissão já vem resolvida (da categoria e do tipo de anúncio). */
 export interface Premissas {
@@ -157,4 +159,5 @@ export interface Anotacao {
   precoClassico: number | null; // preço de venda editado à mão (null = calculado pela margem)
   precoPremium: number | null;
   fotos: string | null; // links das fotos para subir no ML (um por linha)
+  anuncio: AnuncioMl | null; // em qual tipo de anúncio o item vai ser vendido (null = ainda não escolhido)
 }

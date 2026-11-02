@@ -3,7 +3,8 @@ import { useVirtualizer } from '@tanstack/react-virtual';
 import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import { Comparar } from '../componentes/Comparar';
 import { Detalhe } from '../componentes/Detalhe';
-import { CaixaEans, CampoFotos, separarFotos } from '../componentes/FotosMl';
+import { CaixaEans, CampoFotos, EscolhaAnuncio, ROTULO_ANUNCIO, separarFotos } from '../componentes/FotosMl';
+import type { AnuncioMl } from '../nucleo/tipos';
 import { FilaPesquisa } from '../componentes/FilaPesquisa';
 import { MontarKit } from '../componentes/MontarKit';
 import { NovoProduto } from '../componentes/NovoProduto';
@@ -70,6 +71,8 @@ function filtrar(linhas: Linha[], p: URLSearchParams, aba: string): Linha[] {
     if (['novo', 'subiu', 'caiu'].includes(or) && l.mudanca !== or) return false;
     const fotos = g('fotos');
     if (fotos && (separarFotos(l.anot?.fotos).length > 0) !== (fotos === 'com')) return false;
+    const an = g('anuncio');
+    if (an && (an === 'sem' ? !!l.anot?.anuncio : l.anot?.anuncio !== an)) return false;
     return true;
   });
   if (g('top')) {
@@ -95,9 +98,13 @@ interface Coluna {
 }
 
 const COLUNAS_OCULTAS_PADRAO = ['comissao'];
+// em Aprovados a pesquisa já foi feita: as colunas de análise começam escondidas para sobrar espaço
+const COLUNAS_OCULTAS_APROVADOS = ['comissao', 'frete', 'triagem', 'concorrente', 'margem', 'decisao'];
+const chaveColunas = (aba: string) => (aba === 'aprovados' ? 'colunas-ocultas-aprovados' : 'colunas-ocultas');
 
-function lerOcultas(): string[] {
-  try { return JSON.parse(localStorage.getItem('colunas-ocultas') || 'null') || COLUNAS_OCULTAS_PADRAO; } catch { return COLUNAS_OCULTAS_PADRAO; }
+function lerOcultas(aba: string): string[] {
+  const padrao = aba === 'aprovados' ? COLUNAS_OCULTAS_APROVADOS : COLUNAS_OCULTAS_PADRAO;
+  try { return JSON.parse(localStorage.getItem(chaveColunas(aba)) || 'null') || padrao; } catch { return padrao; }
 }
 
 export function Produtos({ aba }: { aba: 'produtos' | 'kits' | 'aprovados' }) {
@@ -114,12 +121,15 @@ export function Produtos({ aba }: { aba: 'produtos' | 'kits' | 'aprovados' }) {
   const [novo, setNovo] = useState(false);
   const [editar, setEditar] = useState<Linha | null>(null);
   const [kitDe, setKitDe] = useState<Linha | null>(null);
-  const [ocultas, setOcultas] = useState<string[]>(lerOcultas);
-  const [verFiltros, setVerFiltros] = useState(() => window.innerWidth >= 768);
+  const [ocultas, setOcultas] = useState<string[]>(() => lerOcultas(aba));
+  const [abaColunas, setAbaColunas] = useState(aba);
+  const [verFiltros, setVerFiltros] = useState(() => aba !== 'aprovados' && window.innerWidth >= 768);
+  // ao trocar de aba: colunas da aba e filtros abertos só fora de Aprovados
+  if (abaColunas !== aba) { setAbaColunas(aba); setOcultas(lerOcultas(aba)); setVerFiltros(aba !== 'aprovados' && window.innerWidth >= 768); }
   const idDetalhe = params.get('item');
   const detalhe = idDetalhe ? linhas.porId.get(idDetalhe) : undefined;
 
-  useEffect(() => { try { localStorage.setItem('colunas-ocultas', JSON.stringify(ocultas)); } catch { /* sem armazenamento */ } }, [ocultas]);
+  useEffect(() => { if (abaColunas === aba) try { localStorage.setItem(chaveColunas(aba), JSON.stringify(ocultas)); } catch { /* sem armazenamento */ } }, [ocultas, aba, abaColunas]);
   // lembra o último filtro de cada aba (restaura só ao abrir a aba sem filtros no endereço)
   const restaurado = useRef<string | null>(null);
   useEffect(() => {
@@ -152,9 +162,10 @@ export function Produtos({ aba }: { aba: 'produtos' | 'kits' | 'aprovados' }) {
       <input type="checkbox" aria-label="Selecionar para comparar" checked={selecionados.includes(l.id)}
         onChange={(e) => setSelecionados((s) => (e.target.checked ? [...s, l.id].slice(-4) : s.filter((x) => x !== l.id)))} onClick={(e) => e.stopPropagation()} />
     ) },
-    { id: 'foto', titulo: '', largura: '48px', render: (l) => <Foto url={l.item.produto.imagemUrl} classe="h-10 w-10" /> },
+    { id: 'foto', titulo: '', largura: aba === 'aprovados' ? '80px' : '48px', render: (l) => <Foto url={l.item.produto.imagemUrl} classe={aba === 'aprovados' ? 'h-18 w-18' : 'h-10 w-10'} ampliar={aba === 'aprovados'} /> },
     { id: 'produto', titulo: 'Produto', largura: 'minmax(280px,2.4fr)', fixa: true, render: (l) => <CelulaProduto l={l} anotar={dados.anotar} /> },
-    ...(aba === 'aprovados' ? [{ id: 'fotosml', titulo: 'Fotos para o ML', largura: '240px', render: (l: Linha) => <CampoFotos linha={l} compacto /> }] : []),
+    ...(aba === 'aprovados' ? [{ id: 'fotosml', titulo: 'Fotos para o ML', largura: '240px', render: (l: Linha) => <CampoFotos linha={l} compacto /> },
+      { id: 'anuncio', titulo: 'Anúncio no ML', largura: '200px', fixa: true, render: (l: Linha) => <EscolhaAnuncio linha={l} /> }] : []),
     ...(aba === 'kits' ? [{ id: 'unidades', titulo: 'Unidades', largura: '92px', render: (l: Linha) => (
       <select className="rounded border border-slate-300 px-1 py-0.5 text-sm" value={l.item.q} onClick={(e) => e.stopPropagation()}
         onChange={(e) => dados.anotar(l.item.sku, { kitQtd: Number(e.target.value), kitMontado: l.tipoKit === 'montado' })} aria-label="Unidades no kit">
@@ -181,7 +192,7 @@ export function Produtos({ aba }: { aba: 'produtos' | 'kits' | 'aprovados' }) {
 
   const scroller = useRef<HTMLDivElement>(null);
   const menuExportar = useRef<HTMLDetailsElement>(null);
-  const virtual = useVirtualizer({ count: lista.length, getScrollElement: () => scroller.current, estimateSize: () => 76, overscan: 12, getItemKey: (i: number) => lista[i].id });
+  const virtual = useVirtualizer({ count: lista.length, getScrollElement: () => scroller.current, estimateSize: () => (aba === 'aprovados' ? 100 : 76), overscan: 12, getItemKey: (i: number) => lista[i].id });
 
   const selLinhas = selecionados.map((id) => linhas.porId.get(id)).filter(Boolean) as Linha[];
 
@@ -224,7 +235,10 @@ export function Produtos({ aba }: { aba: 'produtos' | 'kits' | 'aprovados' }) {
       <Filtros aba={aba} base={base} params={params} mudar={mudarParams} aberto={verFiltros} alternar={() => setVerFiltros((v) => !v)} />
 
       <div className="flex flex-wrap items-center justify-between gap-2 text-sm">
-        <div className="text-slate-600"><b className="text-slate-900">{lista.length.toLocaleString('pt-BR')}</b> de {base.length.toLocaleString('pt-BR')} itens{params.get('top') && ' (Top 20)'}</div>
+        <div className="flex flex-wrap items-center gap-3">
+          <div className="text-slate-600"><b className="text-slate-900">{lista.length.toLocaleString('pt-BR')}</b> de {base.length.toLocaleString('pt-BR')} itens{params.get('top') && ' (Top 20)'}</div>
+          {aba === 'aprovados' && <MarcarAnuncio linhas={lista} />}
+        </div>
         <div className="flex flex-wrap items-center gap-2">
           <Botao pequeno variante={params.get('top') ? 'primario' : 'secundario'} onClick={() => mudarParams({ top: params.get('top') ? null : '20' })}>★ Top 20</Botao>
           <label className="flex items-center gap-1.5">Ordenar:
@@ -250,7 +264,7 @@ export function Produtos({ aba }: { aba: 'produtos' | 'kits' | 'aprovados' }) {
         </div>
       </div>
 
-      <div ref={scroller} className="h-[calc(100vh-300px)] min-h-[420px] overflow-auto rounded-xl border border-slate-200 bg-white" data-testid="tabela">
+      <div ref={scroller} className={`${aba === 'aprovados' ? 'h-[calc(100vh-150px)] min-h-[520px]' : 'h-[calc(100vh-300px)] min-h-[420px]'} overflow-auto rounded-xl border border-slate-200 bg-white`} data-testid="tabela">
         <div style={{ minWidth: 1180 }}>
           <div className="sticky top-0 z-10 grid items-center gap-3 border-b border-slate-200 bg-slate-50 px-3 py-2 text-xs font-medium text-slate-600" style={{ gridTemplateColumns: grade }}>
             {visiveis.map((c) => <div key={c.id} className={c.direita ? 'text-right' : ''}>{c.titulo}</div>)}
@@ -293,11 +307,36 @@ export function Produtos({ aba }: { aba: 'produtos' | 'kits' | 'aprovados' }) {
 }
 
 /** Foto do fornecedor; se não carregar, mostra só o fundo cinza (sem o ícone de imagem quebrada). */
-export function Foto({ url, classe }: { url: string; classe: string }) {
+export function Foto({ url, classe, ampliar = false }: { url: string; classe: string; ampliar?: boolean }) {
+  const img = url && <img src={url} alt="" loading="lazy" className="h-full w-full object-cover" onError={(e) => { (e.currentTarget as HTMLImageElement).style.display = 'none'; }} />;
+  if (ampliar && url)
+    return <a href={url} target="_blank" rel="noreferrer" title="Abrir a foto" onClick={(e) => e.stopPropagation()} className={`${classe} block overflow-hidden rounded border border-slate-200 bg-slate-100`}>{img}</a>;
+  return <div className={`${classe} overflow-hidden rounded border border-slate-200 bg-slate-100`}>{img}</div>;
+}
+
+/** Marca o tipo de anúncio de todos os itens da lista de uma vez. */
+function MarcarAnuncio({ linhas }: { linhas: Linha[] }) {
+  const { anotarVarios, avisar } = useDados();
+  const [salvando, setSalvando] = useState(false);
+  async function marcar(v: AnuncioMl) {
+    if (!linhas.length) return;
+    if (!window.confirm(`Marcar os ${linhas.length} itens desta lista como ${ROTULO_ANUNCIO[v]}?`)) return;
+    setSalvando(true);
+    try {
+      await anotarVarios(linhas.map((l) => l.id), { anuncio: v });
+      avisar(`${linhas.length} itens marcados como ${ROTULO_ANUNCIO[v]}.`);
+    } catch (e) {
+      avisar('Erro ao salvar: ' + (e as Error).message);
+    } finally {
+      setSalvando(false);
+    }
+  }
   return (
-    <div className={`${classe} overflow-hidden rounded border border-slate-200 bg-slate-100`}>
-      {url && <img src={url} alt="" loading="lazy" className="h-full w-full object-cover" onError={(e) => { (e.currentTarget as HTMLImageElement).style.display = 'none'; }} />}
-    </div>
+    <span className="flex flex-wrap items-center gap-1.5 text-slate-600">Marcar todos desta lista como:
+      {(['classico', 'premium', 'ambos'] as AnuncioMl[]).map((v) => (
+        <Botao key={v} pequeno disabled={salvando || !linhas.length} onClick={() => marcar(v)}>{ROTULO_ANUNCIO[v]}</Botao>
+      ))}
+    </span>
   );
 }
 
@@ -394,6 +433,7 @@ function Filtros({ base, params, mudar, aberto, alternar, aba }: {
           {sel('alerta', 'Alertas', [['nenhum', 'Sem alerta'], ...alertas.map((a) => [a, a] as [string, string])])}
           {sel('origem', 'Origem e mudanças', [['planilha', 'Da planilha'], ['manual', 'Criados à mão'], ['novo', 'Novos na última importação'], ['subiu', 'Custo subiu'], ['caiu', 'Custo caiu']])}
           {aba === 'aprovados' && sel('fotos', 'Fotos para o ML', [['sem', 'Sem fotos'], ['com', 'Com fotos']])}
+          {aba === 'aprovados' && sel('anuncio', 'Anúncio no ML', [['sem', 'Não escolhido'], ['classico', 'Clássico'], ['premium', 'Premium'], ['ambos', 'Os dois']])}
           {aba !== 'aprovados' && sel('mostrar', 'Mostrar', [['reprovados', 'Só reprovados'], ['tamanho', 'Só acima do tamanho'], ['todos', 'Tudo (inclui reprovados e grandes)']], 'Ativos (padrão)')}
         </div>
       )}

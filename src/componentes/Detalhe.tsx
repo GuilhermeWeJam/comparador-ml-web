@@ -10,7 +10,7 @@ import type { Pesquisa } from '../nucleo/tipos';
 import { brl, data, kg, lerNumero, nomeCurto, pct } from '../util/formato';
 import { Decidir, registrarDecisao, type AcaoDecisao } from './Decidir';
 import { FormPesquisa } from './FormPesquisa';
-import { CampoFotos } from './FotosMl';
+import { CampoFotos, EscolhaAnuncio } from './FotosMl';
 import { Botao, classeInput, Etiqueta, NotaBadge, VereditoBadge } from './ui';
 
 const SITUACAO: Record<string, { rotulo: string; cor: string }> = {
@@ -238,8 +238,10 @@ export function Detalhe({ linha, ctx, fechar, aoMontarKit, aoEditar }: {
         </Secao>
 
         {linha.situacao === 'aprovado' && (
-          <Secao titulo="Fotos para o Mercado Livre">
-            <p className="mb-2 text-xs text-slate-500">Cole os links das fotos que vão subir no ML (um por linha ou separados por vírgula). Salva ao sair do campo.</p>
+          <Secao titulo="Para o Mercado Livre">
+            <p className="mb-1 text-xs text-slate-500">Tipo de anúncio (vai para a planilha do ML):</p>
+            <div className="mb-3"><EscolhaAnuncio linha={linha} /></div>
+            <p className="mb-1 text-xs text-slate-500">Links das fotos que vão subir no ML (um por linha ou separados por vírgula). Salva ao sair do campo.</p>
             <CampoFotos linha={linha} />
           </Secao>
         )}

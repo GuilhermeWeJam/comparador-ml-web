@@ -209,6 +209,7 @@ export const anotacaoDe = (r: Linha): Anotacao => ({
   precoClassico: n(r.preco_classico),
   precoPremium: n(r.preco_premium),
   fotos: r.fotos ?? null,
+  anuncio: r.tipo_anuncio === 'classico' || r.tipo_anuncio === 'premium' || r.tipo_anuncio === 'ambos' ? r.tipo_anuncio : null,
 });
 
 export const linhaDaAnotacao = (a: Anotacao): Linha => ({
@@ -220,4 +221,5 @@ export const linhaDaAnotacao = (a: Anotacao): Linha => ({
   preco_classico: a.precoClassico,
   preco_premium: a.precoPremium,
   fotos: a.fotos,
+  tipo_anuncio: a.anuncio,
 });
