@@ -35,7 +35,7 @@ export function linhasParaPlanilha(linhas: Linha[]): (string | number | null)[][
       l.dec?.criadoPor || null, l.dec?.criadoEm ? l.dec.criadoEm.slice(0, 10) : null, l.potencial ? 'Sim' : 'Não',
       p.ean, p.ncm, p.cest, p.dims?.[0] ?? null, p.dims?.[1] ?? null, p.dims?.[2] ?? null, p.pesoKg, p.imagemUrl,
       (l.anot?.fotos || '').split(/[\s,;]+/).filter(Boolean).join(','),
-      l.anot?.anuncio === 'classico' ? 'Clássico' : l.anot?.anuncio === 'premium' ? 'Premium' : l.anot?.anuncio === 'ambos' ? 'Clássico e Premium' : null,
+      l.anot?.anuncio === 'classico' ? 'Clássico' : l.anot?.anuncio === 'premium' ? 'Premium' : null,
       a.alertas.map((x) => x.tipo).join(', '),
     ]);
   }

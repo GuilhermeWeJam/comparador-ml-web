@@ -333,7 +333,7 @@ function MarcarAnuncio({ linhas }: { linhas: Linha[] }) {
   }
   return (
     <span className="flex flex-wrap items-center gap-1.5 text-slate-600">Marcar todos desta lista como:
-      {(['classico', 'premium', 'ambos'] as AnuncioMl[]).map((v) => (
+      {(['classico', 'premium'] as AnuncioMl[]).map((v) => (
         <Botao key={v} pequeno disabled={salvando || !linhas.length} onClick={() => marcar(v)}>{ROTULO_ANUNCIO[v]}</Botao>
       ))}
     </span>
@@ -433,7 +433,7 @@ function Filtros({ base, params, mudar, aberto, alternar, aba }: {
           {sel('alerta', 'Alertas', [['nenhum', 'Sem alerta'], ...alertas.map((a) => [a, a] as [string, string])])}
           {sel('origem', 'Origem e mudanças', [['planilha', 'Da planilha'], ['manual', 'Criados à mão'], ['novo', 'Novos na última importação'], ['subiu', 'Custo subiu'], ['caiu', 'Custo caiu']])}
           {aba === 'aprovados' && sel('fotos', 'Fotos para o ML', [['sem', 'Sem fotos'], ['com', 'Com fotos']])}
-          {aba === 'aprovados' && sel('anuncio', 'Anúncio no ML', [['sem', 'Não escolhido'], ['classico', 'Clássico'], ['premium', 'Premium'], ['ambos', 'Os dois']])}
+          {aba === 'aprovados' && sel('anuncio', 'Anúncio no ML', [['sem', 'Não escolhido'], ['classico', 'Clássico'], ['premium', 'Premium']])}
           {aba !== 'aprovados' && sel('mostrar', 'Mostrar', [['reprovados', 'Só reprovados'], ['tamanho', 'Só acima do tamanho'], ['todos', 'Tudo (inclui reprovados e grandes)']], 'Ativos (padrão)')}
         </div>
       )}
