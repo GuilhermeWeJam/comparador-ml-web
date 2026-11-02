@@ -53,20 +53,20 @@ export function CaixaEans({ linhas }: { linhas: Linha[] }) {
   );
 }
 
-export const ROTULO_ANUNCIO: Record<AnuncioMl, string> = { classico: 'Clássico', premium: 'Premium', ambos: 'Os dois' };
+export const ROTULO_ANUNCIO: Record<AnuncioMl, string> = { classico: 'Clássico', premium: 'Premium' };
 
-/** Escolha do tipo de anúncio do item: Clássico, Premium ou os dois. Clicar de novo na opção marcada desmarca. */
+/** Escolha do tipo de anúncio do item: Clássico ou Premium. Clicar de novo na opção marcada desmarca. */
 export function EscolhaAnuncio({ linha }: { linha: Linha }) {
   const { anotar, avisar } = useDados();
   const atual = linha.anot?.anuncio || null;
   async function escolher(v: AnuncioMl) {
     try { await anotar(linha.id, { anuncio: atual === v ? null : v }); } catch (e) { avisar('Erro ao salvar o tipo de anúncio: ' + (e as Error).message); }
   }
-  const preco = atual === 'classico' ? brl(linha.a.classico.preco) : atual === 'premium' ? brl(linha.a.premium.preco) : atual === 'ambos' ? `${brl(linha.a.classico.preco)} / ${brl(linha.a.premium.preco)}` : null;
+  const preco = atual === 'classico' ? brl(linha.a.classico.preco) : atual === 'premium' ? brl(linha.a.premium.preco) : null;
   return (
     <div onClick={(e) => e.stopPropagation()} onKeyDown={(e) => e.stopPropagation()}>
       <div className="inline-flex overflow-hidden rounded-lg border border-slate-300 text-xs" role="group" aria-label={`Tipo de anúncio de ${linha.item.nome}`}>
-        {(['classico', 'premium', 'ambos'] as AnuncioMl[]).map((v, i) => (
+        {(['classico', 'premium'] as AnuncioMl[]).map((v, i) => (
           <button key={v} type="button" aria-pressed={atual === v} onClick={() => escolher(v)}
             className={`px-2 py-1 ${i ? 'border-l border-slate-300' : ''} ${atual === v ? 'bg-blue-600 font-medium text-white' : 'bg-white text-slate-700 hover:bg-slate-50'}`}>
             {ROTULO_ANUNCIO[v]}
