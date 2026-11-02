@@ -14,7 +14,7 @@ export const CABECALHO = [
   'Preço mínimo Clássico', 'Preço mínimo Premium', 'Frete no Clássico', 'Peso para frete (kg)',
   'Nota de triagem', 'Preço de referência', 'Margem na referência (%)', 'Nota de decisão', 'Veredito', 'Motivo do veredito',
   'Decisão', 'Motivo da decisão', 'Decidido por', 'Data da decisão', 'Potencial',
-  'EAN', 'NCM', 'CEST', 'Largura (cm)', 'Altura (cm)', 'Comprimento (cm)', 'Peso real (kg)', 'Foto', 'Alertas',
+  'EAN', 'NCM', 'CEST', 'Largura (cm)', 'Altura (cm)', 'Comprimento (cm)', 'Peso real (kg)', 'Foto', 'Fotos para o ML', 'Alertas',
 ];
 
 export function linhasParaPlanilha(linhas: Linha[]): (string | number | null)[][] {
@@ -34,6 +34,7 @@ export function linhasParaPlanilha(linhas: Linha[]): (string | number | null)[][
       SITUACAO[l.situacao], l.dec ? [l.dec.motivo, l.dec.motivoDetalhe].filter(Boolean).join(' — ') : null,
       l.dec?.criadoPor || null, l.dec?.criadoEm ? l.dec.criadoEm.slice(0, 10) : null, l.potencial ? 'Sim' : 'Não',
       p.ean, p.ncm, p.cest, p.dims?.[0] ?? null, p.dims?.[1] ?? null, p.dims?.[2] ?? null, p.pesoKg, p.imagemUrl,
+      (l.anot?.fotos || '').split(/[\s,;]+/).filter(Boolean).join(','),
       a.alertas.map((x) => x.tipo).join(', '),
     ]);
   }
