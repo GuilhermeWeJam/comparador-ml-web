@@ -43,7 +43,7 @@ Leva cerca de 40 minutos na primeira vez. Siga na ordem.
 3. Faça o mesmo com `supabase/migrations/0002_dados_iniciais.sql` (comissões, as 61 categorias com a ligação e a época, tabela de frete e configurações).
 4. Abra `supabase/migrations/0003_admins.sql` e **troque os dois e-mails** pelos e-mails Google de vocês dois (em minúsculas). Cole no SQL Editor e rode.
    - O banco aceita no máximo 2 e-mails. Qualquer outra conta Google até consegue fazer login, mas não vê nenhum dado.
-5. Rode também, em ordem, os arquivos de atualização: `0004_peso_frete_modo.sql`, `0005_preco_manual.sql` e `0006_fotos.sql`.
+5. Rode também, em ordem, os arquivos de atualização: `0004_peso_frete_modo.sql`, `0005_preco_manual.sql`, `0006_fotos.sql` e `0007_tipo_anuncio.sql`.
 6. Confira: em **Table Editor**, a tabela `categorias` deve ter 61 linhas e `admins` 2 linhas.
 
 > Todos os arquivos podem ser rodados de novo sem estragar nada.
@@ -151,6 +151,7 @@ npm run typecheck              # confere os tipos
 | Exportar para cadastrar anúncios | **Produtos → Exportar → Aprovados (.xlsx)** (sai com a coluna **Fotos para o ML**) |
 | Mandar os EANs dos aprovados ao ML | **Aprovados → Copiar EANs**: separados por vírgula, sem repetir; os filtros da tela valem |
 | Guardar os links das fotos para o ML | **Aprovados**, coluna **Fotos para o ML** (ou no detalhe do item): cole os links, um por linha; salva ao sair do campo. Filtro **Fotos para o ML → Sem fotos** mostra o que falta |
+| Escolher Clássico ou Premium de cada aprovado | **Aprovados**, coluna **Anúncio no ML**: Clássico, Premium ou Os dois (clicar de novo desmarca). **Marcar todos desta lista como** aplica a todos os itens filtrados. Sai na coluna **Anúncio no ML** do Exportar |
 
 **Atalhos da fila de pesquisa:** Enter salva e mostra o resultado; Enter de novo passa ao próximo;
 "n" no campo de menor preço vazio marca "não encontrei"; Esc pula.
