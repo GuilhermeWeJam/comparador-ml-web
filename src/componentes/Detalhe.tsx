@@ -10,6 +10,7 @@ import type { Pesquisa } from '../nucleo/tipos';
 import { brl, data, kg, lerNumero, nomeCurto, pct } from '../util/formato';
 import { Decidir, registrarDecisao, type AcaoDecisao } from './Decidir';
 import { FormPesquisa } from './FormPesquisa';
+import { CampoFotos } from './FotosMl';
 import { Botao, classeInput, Etiqueta, NotaBadge, VereditoBadge } from './ui';
 
 const SITUACAO: Record<string, { rotulo: string; cor: string }> = {
@@ -235,6 +236,13 @@ export function Detalhe({ linha, ctx, fechar, aoMontarKit, aoEditar }: {
             </details>
           )}
         </Secao>
+
+        {linha.situacao === 'aprovado' && (
+          <Secao titulo="Fotos para o Mercado Livre">
+            <p className="mb-2 text-xs text-slate-500">Cole os links das fotos que vão subir no ML (um por linha ou separados por vírgula). Salva ao sair do campo.</p>
+            <CampoFotos linha={linha} />
+          </Secao>
+        )}
 
         <Secao titulo={<span className="flex items-center gap-2">Título sugerido <Etiqueta cor={analiseTitulo.nivel === 'Bom' ? 'verde' : analiseTitulo.nivel === 'Regular' ? 'laranja' : 'vermelho'}>{analiseTitulo.nota}</Etiqueta></span>}
           acoes={<Botao pequeno onClick={async () => { await anotar(item.id, { titulo }); avisar('Título salvo.'); }}>Salvar título</Botao>}>

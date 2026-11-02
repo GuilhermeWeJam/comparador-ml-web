@@ -3,6 +3,7 @@ import { useVirtualizer } from '@tanstack/react-virtual';
 import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import { Comparar } from '../componentes/Comparar';
 import { Detalhe } from '../componentes/Detalhe';
+import { CaixaEans, CampoFotos, separarFotos } from '../componentes/FotosMl';
 import { FilaPesquisa } from '../componentes/FilaPesquisa';
 import { MontarKit } from '../componentes/MontarKit';
 import { NovoProduto } from '../componentes/NovoProduto';
@@ -67,6 +68,8 @@ function filtrar(linhas: Linha[], p: URLSearchParams, aba: string): Linha[] {
     if (or === 'planilha' && pr.origem !== 'planilha') return false;
     if (or === 'manual' && pr.origem !== 'manual') return false;
     if (['novo', 'subiu', 'caiu'].includes(or) && l.mudanca !== or) return false;
+    const fotos = g('fotos');
+    if (fotos && (separarFotos(l.anot?.fotos).length > 0) !== (fotos === 'com')) return false;
     return true;
   });
   if (g('top')) {
@@ -151,6 +154,7 @@ export function Produtos({ aba }: { aba: 'produtos' | 'kits' | 'aprovados' }) {
     ) },
     { id: 'foto', titulo: '', largura: '48px', render: (l) => <Foto url={l.item.produto.imagemUrl} classe="h-10 w-10" /> },
     { id: 'produto', titulo: 'Produto', largura: 'minmax(280px,2.4fr)', fixa: true, render: (l) => <CelulaProduto l={l} anotar={dados.anotar} /> },
+    ...(aba === 'aprovados' ? [{ id: 'fotosml', titulo: 'Fotos para o ML', largura: '240px', render: (l: Linha) => <CampoFotos linha={l} compacto /> }] : []),
     ...(aba === 'kits' ? [{ id: 'unidades', titulo: 'Unidades', largura: '92px', render: (l: Linha) => (
       <select className="rounded border border-slate-300 px-1 py-0.5 text-sm" value={l.item.q} onClick={(e) => e.stopPropagation()}
         onChange={(e) => dados.anotar(l.item.sku, { kitQtd: Number(e.target.value), kitMontado: l.tipoKit === 'montado' })} aria-label="Unidades no kit">
@@ -214,6 +218,8 @@ export function Produtos({ aba }: { aba: 'produtos' | 'kits' | 'aprovados' }) {
           </details>
         </div>
       </div>
+
+      {aba === 'aprovados' && <CaixaEans linhas={lista} />}
 
       <Filtros aba={aba} base={base} params={params} mudar={mudarParams} aberto={verFiltros} alternar={() => setVerFiltros((v) => !v)} />
 
@@ -387,6 +393,7 @@ function Filtros({ base, params, mudar, aberto, alternar, aba }: {
           {sel('pesq', 'Pesquisa', [['pendente', 'Pendente'], ['feita', 'Feita'], ['vencida', 'Vencida'], ['nao_encontrado', 'Não encontrado']])}
           {sel('alerta', 'Alertas', [['nenhum', 'Sem alerta'], ...alertas.map((a) => [a, a] as [string, string])])}
           {sel('origem', 'Origem e mudanças', [['planilha', 'Da planilha'], ['manual', 'Criados à mão'], ['novo', 'Novos na última importação'], ['subiu', 'Custo subiu'], ['caiu', 'Custo caiu']])}
+          {aba === 'aprovados' && sel('fotos', 'Fotos para o ML', [['sem', 'Sem fotos'], ['com', 'Com fotos']])}
           {aba !== 'aprovados' && sel('mostrar', 'Mostrar', [['reprovados', 'Só reprovados'], ['tamanho', 'Só acima do tamanho'], ['todos', 'Tudo (inclui reprovados e grandes)']], 'Ativos (padrão)')}
         </div>
       )}

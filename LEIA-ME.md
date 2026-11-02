@@ -16,7 +16,7 @@ Feito com React + Vite + Tailwind, Supabase (banco, login Google e arquivos) e G
 | `src/nucleo/__testes__/` | Testes automáticos, inclusive a paridade com a planilha (os 1.572 produtos dão o mesmo preço e lucro do plugin 1.5.1). |
 | `src/dados/` | Conexão com o Supabase, importação da planilha, cálculo das linhas da lista. |
 | `src/paginas/`, `src/componentes/` | As telas. |
-| `supabase/migrations/` | Os 3 arquivos SQL que criam o banco (passo 2). |
+| `supabase/migrations/` | Os arquivos SQL que criam e atualizam o banco (passo 2). |
 | `.github/workflows/` | Publicar o site, manter o Supabase ativo e backup semanal. |
 
 ---
@@ -43,9 +43,10 @@ Leva cerca de 40 minutos na primeira vez. Siga na ordem.
 3. Faça o mesmo com `supabase/migrations/0002_dados_iniciais.sql` (comissões, as 61 categorias com a ligação e a época, tabela de frete e configurações).
 4. Abra `supabase/migrations/0003_admins.sql` e **troque os dois e-mails** pelos e-mails Google de vocês dois (em minúsculas). Cole no SQL Editor e rode.
    - O banco aceita no máximo 2 e-mails. Qualquer outra conta Google até consegue fazer login, mas não vê nenhum dado.
-5. Confira: em **Table Editor**, a tabela `categorias` deve ter 61 linhas e `admins` 2 linhas.
+5. Rode também, em ordem, os arquivos de atualização: `0004_peso_frete_modo.sql`, `0005_preco_manual.sql` e `0006_fotos.sql`.
+6. Confira: em **Table Editor**, a tabela `categorias` deve ter 61 linhas e `admins` 2 linhas.
 
-> Os 3 arquivos podem ser rodados de novo sem estragar nada.
+> Todos os arquivos podem ser rodados de novo sem estragar nada.
 
 ### 3. Pegar o endereço e a chave pública do Supabase
 
@@ -147,7 +148,9 @@ npm run typecheck              # confere os tipos
 | Atualizar a tabela de frete do ML | **Configurações → Tabela de frete → Ver e editar** |
 | Trocar um dos 2 e-mails | No Supabase, **Table Editor → admins**: apague a linha antiga e insira a nova (máximo 2). Lembre de pôr o e-mail novo também em **Usuários de teste** no Google. |
 | Mandar uma seleção ao sócio | Filtre a lista e copie o endereço do navegador: os filtros vão no link. |
-| Exportar para cadastrar anúncios | **Produtos → Exportar → Aprovados (.xlsx)** |
+| Exportar para cadastrar anúncios | **Produtos → Exportar → Aprovados (.xlsx)** (sai com a coluna **Fotos para o ML**) |
+| Mandar os EANs dos aprovados ao ML | **Aprovados → Copiar EANs**: separados por vírgula, sem repetir; os filtros da tela valem |
+| Guardar os links das fotos para o ML | **Aprovados**, coluna **Fotos para o ML** (ou no detalhe do item): cole os links, um por linha; salva ao sair do campo. Filtro **Fotos para o ML → Sem fotos** mostra o que falta |
 
 **Atalhos da fila de pesquisa:** Enter salva e mostra o resultado; Enter de novo passa ao próximo;
 "n" no campo de menor preço vazio marca "não encontrei"; Esc pula.

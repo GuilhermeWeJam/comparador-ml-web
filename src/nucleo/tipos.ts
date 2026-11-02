@@ -156,4 +156,5 @@ export interface Anotacao {
   kitMontado: boolean;
   precoClassico: number | null; // preço de venda editado à mão (null = calculado pela margem)
   precoPremium: number | null;
+  fotos: string | null; // links das fotos para subir no ML (um por linha)
 }
