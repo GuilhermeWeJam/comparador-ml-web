@@ -245,7 +245,7 @@ export function DadosProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const anotar = useCallback(async (itemId: string, mudanca: Partial<Anotacao>) => {
-    const atual = dadosRef.current.anotacoes.get(itemId) || { itemId, potencial: false, titulo: null, kitQtd: null, kitMontado: false, precoClassico: null, precoPremium: null, fotos: null, anuncio: null };
+    const atual = dadosRef.current.anotacoes.get(itemId) || { itemId, potencial: false, titulo: null, kitQtd: null, kitMontado: false, precoClassico: null, precoPremium: null, fotos: null, anuncio: null, publicadoEm: null, precoPublicado: null };
     const nova: Anotacao = { ...atual, ...mudanca, itemId };
     setDados((d) => {
       const anotacoes = new Map(d.anotacoes);
@@ -264,7 +264,7 @@ export function DadosProvider({ children }: { children: ReactNode }) {
     if (!itemIds.length) return;
     const antes = new Map(dadosRef.current.anotacoes);
     const novas = itemIds.map((itemId): Anotacao => ({
-      ...(antes.get(itemId) || { itemId, potencial: false, titulo: null, kitQtd: null, kitMontado: false, precoClassico: null, precoPremium: null, fotos: null, anuncio: null }),
+      ...(antes.get(itemId) || { itemId, potencial: false, titulo: null, kitQtd: null, kitMontado: false, precoClassico: null, precoPremium: null, fotos: null, anuncio: null, publicadoEm: null, precoPublicado: null }),
       ...mudanca,
       itemId,
     }));

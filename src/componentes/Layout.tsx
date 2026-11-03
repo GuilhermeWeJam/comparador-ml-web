@@ -7,6 +7,7 @@ const MENU = [
   { pagina: 'produtos', rotulo: 'Produtos' },
   { pagina: 'kits', rotulo: 'Kits recomendados' },
   { pagina: 'aprovados', rotulo: 'Aprovados' },
+  { pagina: 'publicados', rotulo: 'Publicados' },
   { pagina: 'importar', rotulo: 'Importar' },
   { pagina: 'config', rotulo: 'Configurações' },
 ];

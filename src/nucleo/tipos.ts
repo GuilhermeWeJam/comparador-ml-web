@@ -160,4 +160,6 @@ export interface Anotacao {
   precoPremium: number | null;
   fotos: string | null; // links das fotos para subir no ML (um por linha)
   anuncio: AnuncioMl | null; // em qual tipo de anúncio o item vai ser vendido (null = ainda não escolhido)
+  publicadoEm: string | null; // quando foi marcado como publicado no ML (null = ainda em Aprovados)
+  precoPublicado: number | null; // preço com que foi anunciado (foto do momento da publicação)
 }
