@@ -113,3 +113,42 @@ export function CampoFotos({ linha, compacto = false }: { linha: Linha; compacto
     </div>
   );
 }
+
+/** Preço de venda do tipo de anúncio escolhido (já com o preço manual, se houver). */
+export function precoDoAnuncio(linha: Linha): number | null {
+  const t = linha.anot?.anuncio;
+  return t === 'classico' ? linha.a.classico.preco : t === 'premium' ? linha.a.premium.preco : null;
+}
+
+/** Botão que move o item aprovado para Publicados (pede o tipo de anúncio escolhido antes). */
+export function BotaoPublicar({ linha }: { linha: Linha }) {
+  const { anotar, avisar } = useDados();
+  const [salvando, setSalvando] = useState(false);
+  const publicado = !!linha.anot?.publicadoEm;
+  const preco = precoDoAnuncio(linha);
+  async function alternar() {
+    setSalvando(true);
+    try {
+      if (publicado) {
+        await anotar(linha.id, { publicadoEm: null, precoPublicado: null });
+        avisar(`${linha.item.nome}: voltou para Aprovados.`);
+      } else {
+        await anotar(linha.id, { publicadoEm: new Date().toISOString(), precoPublicado: preco });
+        avisar(`${linha.item.nome}: adicionado aos Publicados.`);
+      }
+    } catch (e) {
+      avisar('Erro ao salvar: ' + (e as Error).message);
+    } finally {
+      setSalvando(false);
+    }
+  }
+  const semTipo = !publicado && !linha.anot?.anuncio;
+  return (
+    <div className="mt-1.5" onClick={(e) => e.stopPropagation()} onKeyDown={(e) => e.stopPropagation()}>
+      <Botao pequeno variante={publicado ? 'secundario' : 'primario'} disabled={salvando || semTipo} onClick={alternar}
+        title={semTipo ? 'Escolha Clássico ou Premium antes de publicar' : undefined} data-testid="botao-publicar">
+        {publicado ? 'Voltar para Aprovados' : 'Adicionar aos publicados'}
+      </Botao>
+    </div>
+  );
+}

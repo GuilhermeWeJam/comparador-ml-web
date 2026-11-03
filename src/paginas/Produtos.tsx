@@ -3,7 +3,7 @@ import { useVirtualizer } from '@tanstack/react-virtual';
 import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import { Comparar } from '../componentes/Comparar';
 import { Detalhe } from '../componentes/Detalhe';
-import { CaixaEans, CampoFotos, EscolhaAnuncio, ROTULO_ANUNCIO, separarFotos } from '../componentes/FotosMl';
+import { BotaoPublicar, CaixaEans, CampoFotos, EscolhaAnuncio, ROTULO_ANUNCIO, separarFotos } from '../componentes/FotosMl';
 import type { AnuncioMl } from '../nucleo/tipos';
 import { FilaPesquisa } from '../componentes/FilaPesquisa';
 import { MontarKit } from '../componentes/MontarKit';
@@ -111,8 +111,8 @@ export function Produtos({ aba }: { aba: 'produtos' | 'kits' | 'aprovados' }) {
   const { params, mudarParams } = useRota();
   const dados = useDados();
   const linhas = useLinhas();
-  // aprovados: unidades e kits aprovados, inclusive os que ficaram indisponíveis ou saíram da planilha
-  const aprovados = useMemo(() => [...linhas.porId.values()].filter((l) => l.situacao === 'aprovado'), [linhas.porId]);
+  // aprovados: unidades e kits aprovados ainda não publicados, inclusive os que ficaram indisponíveis ou saíram da planilha
+  const aprovados = useMemo(() => [...linhas.porId.values()].filter((l) => l.situacao === 'aprovado' && !l.anot?.publicadoEm), [linhas.porId]);
   const base = aba === 'aprovados' ? aprovados : aba === 'kits' ? linhas.kits : linhas.unidades;
   const lista = useMemo(() => filtrar(base, params, aba), [base, params, aba]);
   const [selecionados, setSelecionados] = useState<string[]>([]);
@@ -165,7 +165,7 @@ export function Produtos({ aba }: { aba: 'produtos' | 'kits' | 'aprovados' }) {
     { id: 'foto', titulo: '', largura: aba === 'aprovados' ? '80px' : '48px', render: (l) => <Foto url={l.item.produto.imagemUrl} classe={aba === 'aprovados' ? 'h-18 w-18' : 'h-10 w-10'} ampliar={aba === 'aprovados'} /> },
     { id: 'produto', titulo: 'Produto', largura: 'minmax(280px,2.4fr)', fixa: true, render: (l) => <CelulaProduto l={l} anotar={dados.anotar} /> },
     ...(aba === 'aprovados' ? [{ id: 'fotosml', titulo: 'Fotos para o ML', largura: '240px', render: (l: Linha) => <CampoFotos linha={l} compacto /> },
-      { id: 'anuncio', titulo: 'Anúncio no ML', largura: '200px', fixa: true, render: (l: Linha) => <EscolhaAnuncio linha={l} /> }] : []),
+      { id: 'anuncio', titulo: 'Anúncio no ML', largura: '200px', fixa: true, render: (l: Linha) => <><EscolhaAnuncio linha={l} /><BotaoPublicar linha={l} /></> }] : []),
     ...(aba === 'kits' ? [{ id: 'unidades', titulo: 'Unidades', largura: '92px', render: (l: Linha) => (
       <select className="rounded border border-slate-300 px-1 py-0.5 text-sm" value={l.item.q} onClick={(e) => e.stopPropagation()}
         onChange={(e) => dados.anotar(l.item.sku, { kitQtd: Number(e.target.value), kitMontado: l.tipoKit === 'montado' })} aria-label="Unidades no kit">
