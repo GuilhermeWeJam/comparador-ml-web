@@ -22,9 +22,14 @@ export function Publicados() {
       .sort((a, b) => (b.anot!.publicadoEm || '').localeCompare(a.anot!.publicadoEm || '')),
     [linhas.porId],
   );
+  // duas abas, igual em Aprovados: Unidades (1 unidade) e Kits (2 ou mais)
+  const tipoAba = params.get('tipo') === 'kits' ? 'kits' : 'unidades';
+  const pubUnidades = publicados.filter((l) => l.item.q === 1);
+  const pubKits = publicados.filter((l) => l.item.q > 1);
+  const daAba = tipoAba === 'kits' ? pubKits : pubUnidades;
   const q = semAcento(busca.trim());
   const aberto = params.get('item') ? publicados.find((l) => l.id === params.get('item')) : undefined;
-  const lista = q ? publicados.filter((l) => semAcento(`${l.item.nome} ${l.item.produto.sku} ${l.item.produto.ean}`).includes(q)) : publicados;
+  const lista = q ? daAba.filter((l) => semAcento(`${l.item.nome} ${l.item.produto.sku} ${l.item.produto.ean}`).includes(q)) : daAba;
 
   return (
     <div className="grid gap-3">
@@ -33,9 +38,19 @@ export function Publicados() {
         <p className="text-sm text-slate-600">Itens que vocês já anunciaram no Mercado Livre. Use <b>Voltar para Aprovados</b> para desfazer.</p>
       </div>
 
+      <div className="flex gap-1 border-b border-slate-200" role="tablist" aria-label="Tipo de item publicado">
+        {([['unidades', 'Unidades', pubUnidades.length], ['kits', 'Kits', pubKits.length]] as [string, string, number][]).map(([v, rot, n]) => (
+          <button key={v} type="button" role="tab" aria-selected={tipoAba === v} data-testid={`aba-pub-${v}`}
+            onClick={() => mudarParams({ tipo: v === 'unidades' ? null : v, item: null })}
+            className={`-mb-px rounded-t-lg border px-4 py-2 text-sm ${tipoAba === v ? 'border-slate-200 border-b-white bg-white font-semibold text-blue-800' : 'border-transparent text-slate-600 hover:text-slate-900'}`}>
+            {rot} <Etiqueta cor={tipoAba === v ? 'azul' : 'cinza'}>{n}</Etiqueta>
+          </button>
+        ))}
+      </div>
+
       <div className="flex flex-wrap items-center gap-3">
         <input className={`${classeInput} max-w-md flex-1`} placeholder="Buscar por nome, SKU ou EAN" value={busca} onChange={(e) => setBusca(e.target.value)} />
-        <span className="text-sm text-slate-600"><b className="text-slate-900">{lista.length.toLocaleString('pt-BR')}</b> de {publicados.length.toLocaleString('pt-BR')} publicados</span>
+        <span className="text-sm text-slate-600"><b className="text-slate-900">{lista.length.toLocaleString('pt-BR')}</b> de {daAba.length.toLocaleString('pt-BR')} {tipoAba === 'kits' ? 'kits' : 'unidades'} publicados</span>
       </div>
 
       <div className="overflow-x-auto rounded-xl border border-slate-200 bg-white">
@@ -53,7 +68,7 @@ export function Publicados() {
           <tbody>
             {lista.length === 0 ? (
               <tr><td colSpan={6} className="px-4 py-10 text-center text-slate-500">
-                {publicados.length ? 'Nenhum publicado com essa busca.' : 'Nenhum item publicado ainda. Em Aprovados, escolha Clássico ou Premium e clique em "Adicionar aos publicados".'}
+                {daAba.length ? 'Nenhum publicado com essa busca.' : publicados.length ? `Nenhum${tipoAba === 'kits' ? ' kit' : 'a unidade'} publicad${tipoAba === 'kits' ? 'o' : 'a'} ainda.` : 'Nenhum item publicado ainda. Em Aprovados, escolha Clássico ou Premium e clique em "Adicionar aos publicados".'}
               </td></tr>
             ) : lista.map((l) => <LinhaPublicado key={l.id} l={l} abrir={() => mudarParams({ item: l.id })} />)}
           </tbody>
