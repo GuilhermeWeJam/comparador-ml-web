@@ -7,6 +7,7 @@ import { Importar } from './paginas/Importar';
 import { Inicio } from './paginas/Inicio';
 import { Produtos } from './paginas/Produtos';
 import { Publicados } from './paginas/Publicados';
+import { PlanilhaMlPagina } from './paginas/PlanilhaMl';
 import { useRota } from './util/rota';
 
 export function App() {
@@ -26,6 +27,7 @@ export function App() {
     case 'importar': pagina = <Importar />; break;
     case 'produtos': pagina = semProdutos ? <Importar /> : <Produtos aba="produtos" />; break;
     case 'aprovados': pagina = semProdutos ? <Importar /> : <Produtos aba="aprovados" />; break;
+    case 'planilha-ml': pagina = semProdutos ? <Importar /> : <PlanilhaMlPagina />; break;
     case 'publicados': pagina = semProdutos ? <Importar /> : <Publicados />; break;
     case 'kits': pagina = semProdutos ? <Importar /> : <Produtos aba="kits" />; break;
     case 'config': pagina = <Configuracoes />; break;

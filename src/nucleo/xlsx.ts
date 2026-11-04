@@ -8,7 +8,7 @@ async function inflar(bytes: Uint8Array): Promise<Uint8Array> {
   return new Uint8Array(await new Response(stream).arrayBuffer());
 }
 
-function lerZip(buffer: ArrayBuffer): Record<string, () => Promise<Uint8Array>> {
+export function lerZip(buffer: ArrayBuffer): Record<string, () => Promise<Uint8Array>> {
   const dv = new DataView(buffer);
   const bytes = new Uint8Array(buffer);
   let eocd = -1;
@@ -134,7 +134,7 @@ const TABELA_CRC = (() => {
   return t;
 })();
 
-function crc32(bytes: Uint8Array): number {
+export function crc32(bytes: Uint8Array): number {
   let c = 0xffffffff;
   for (let i = 0; i < bytes.length; i++) c = TABELA_CRC[(c ^ bytes[i]) & 0xff] ^ (c >>> 8);
   return (c ^ 0xffffffff) >>> 0;
