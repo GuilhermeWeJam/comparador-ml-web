@@ -154,6 +154,7 @@ npm run typecheck              # confere os tipos
 | Escolher Clássico ou Premium de cada aprovado | **Aprovados**, coluna **Anúncio no ML**: Clássico ou Premium (clicar de novo desmarca). **Marcar todos desta lista como** aplica a todos os itens filtrados. Sai na coluna **Anúncio no ML** do Exportar |
 | Marcar que um aprovado já foi anunciado no ML | **Aprovados**, botão **Adicionar aos publicados** (precisa ter Clássico ou Premium escolhido). O item sai de Aprovados e vai para **Publicados**, com o preço daquele momento |
 | Desfazer uma publicação | **Publicados**, botão **Voltar para Aprovados** |
+| Preencher a planilha do ML | **Planilha do ML**: envie a planilha *Anunciar em massa* que o ML devolveu depois dos EANs; o sistema acha cada produto pelo EAN e baixa a planilha preenchida. Regras em `docs/regras-planilha-ml.md` |
 
 **Atalhos da fila de pesquisa:** Enter salva e mostra o resultado; Enter de novo passa ao próximo;
 "n" no campo de menor preço vazio marca "não encontrei"; Esc pula.
