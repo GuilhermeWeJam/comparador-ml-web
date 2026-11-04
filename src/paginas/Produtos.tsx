@@ -113,7 +113,11 @@ export function Produtos({ aba }: { aba: 'produtos' | 'kits' | 'aprovados' }) {
   const linhas = useLinhas();
   // aprovados: unidades e kits aprovados ainda não publicados, inclusive os que ficaram indisponíveis ou saíram da planilha
   const aprovados = useMemo(() => [...linhas.porId.values()].filter((l) => l.situacao === 'aprovado' && !l.anot?.publicadoEm), [linhas.porId]);
-  const base = aba === 'aprovados' ? aprovados : aba === 'kits' ? linhas.kits : linhas.unidades;
+  // em Aprovados, duas abas: Unidades (1 unidade) e Kits (2 ou mais unidades)
+  const tipoAprovados = params.get('tipo') === 'kits' ? 'kits' : 'unidades';
+  const aprovUnidades = useMemo(() => aprovados.filter((l) => l.item.q === 1), [aprovados]);
+  const aprovKits = useMemo(() => aprovados.filter((l) => l.item.q > 1), [aprovados]);
+  const base = aba === 'aprovados' ? (tipoAprovados === 'kits' ? aprovKits : aprovUnidades) : aba === 'kits' ? linhas.kits : linhas.unidades;
   const lista = useMemo(() => filtrar(base, params, aba), [base, params, aba]);
   const [selecionados, setSelecionados] = useState<string[]>([]);
   const [fila, setFila] = useState<string[] | null>(null);
@@ -229,6 +233,18 @@ export function Produtos({ aba }: { aba: 'produtos' | 'kits' | 'aprovados' }) {
           </details>
         </div>
       </div>
+
+      {aba === 'aprovados' && (
+        <div className="flex gap-1 border-b border-slate-200" role="tablist" aria-label="Tipo de item aprovado">
+          {([['unidades', 'Unidades', aprovUnidades.length], ['kits', 'Kits', aprovKits.length]] as [string, string, number][]).map(([v, rot, n]) => (
+            <button key={v} type="button" role="tab" aria-selected={tipoAprovados === v} data-testid={`aba-${v}`}
+              onClick={() => mudarParams({ tipo: v === 'unidades' ? null : v, item: null, top: null })}
+              className={`-mb-px rounded-t-lg border px-4 py-2 text-sm ${tipoAprovados === v ? 'border-slate-200 border-b-white bg-white font-semibold text-blue-800' : 'border-transparent text-slate-600 hover:text-slate-900'}`}>
+              {rot} <Etiqueta cor={tipoAprovados === v ? 'azul' : 'cinza'}>{n}</Etiqueta>
+            </button>
+          ))}
+        </div>
+      )}
 
       {aba === 'aprovados' && <CaixaEans linhas={lista} />}
 
@@ -393,7 +409,7 @@ function Filtros({ base, params, mudar, aberto, alternar, aba }: {
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [base, params.get('uf')]);
   const alertas = useMemo(() => [...new Set(base.flatMap((l) => l.a.alertas.map((a) => a.tipo)))].sort(), [base]);
-  const ativos = [...params.keys()].filter((k) => !['item', 'ordem', 'dir', 'top'].includes(k)).length;
+  const ativos = [...params.keys()].filter((k) => !['item', 'ordem', 'dir', 'top', 'tipo'].includes(k)).length;
   const sel = (k: string, rotulo: string, opcoes: [string, string][], vazio = 'Todos') => (
     <label className="grid gap-1 text-xs text-slate-600">{rotulo}
       <select className={`${classeInput} ${g(k) ? 'border-blue-400 bg-blue-50' : ''}`} value={g(k)} onChange={(e) => mudar({ [k]: e.target.value, ...(k === 'uf' ? { forn: null } : {}), top: null })} data-filtro={k}>
@@ -415,7 +431,7 @@ function Filtros({ base, params, mudar, aberto, alternar, aba }: {
       <div className="flex flex-wrap items-center gap-3">
         <input className={`${classeInput} max-w-md flex-1`} placeholder="Buscar por nome, SKU, marca ou EAN" value={g('q')} onChange={(e) => mudar({ q: e.target.value })} data-filtro="q" />
         <button type="button" className="text-sm text-blue-700" onClick={alternar}>{aberto ? 'Esconder filtros' : 'Mostrar filtros'}{ativos ? ` (${ativos} ativos)` : ''}</button>
-        {ativos > 0 && <button type="button" className="text-sm text-slate-600 underline" onClick={() => mudar(Object.fromEntries([...params.keys()].filter((k) => k !== 'item').map((k) => [k, null])))}>Limpar filtros</button>}
+        {ativos > 0 && <button type="button" className="text-sm text-slate-600 underline" onClick={() => mudar(Object.fromEntries([...params.keys()].filter((k) => k !== 'item' && k !== 'tipo').map((k) => [k, null])))}>Limpar filtros</button>}
       </div>
       {aberto && (
         <div className="mt-3 grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-6">
