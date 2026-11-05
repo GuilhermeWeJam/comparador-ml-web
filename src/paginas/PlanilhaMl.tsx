@@ -85,6 +85,8 @@ export function PlanilhaMlPagina() {
     }, LIMITE_TITULO);
     if (!l.anot?.anuncio) r.avisos.unshift(`Tipo de anúncio não escolhido: usado o padrão (${ROTULO_ANUNCIO[tipo]}).`);
     if (l.anot?.publicadoEm) r.avisos.unshift('Este item já está em Publicados.');
+    const env = l.a.alertas.find((a) => a.tipo === 'Envio')?.restricao;
+    if (env) r.avisos.unshift(`Produto na blacklist do Mercado Envios (${env.classe} · ${env.nome}, "${env.termo}"): o ML pode recusar o envio.`);
     if (l.foraDaLista) r.avisos.unshift('Item fora da lista do fornecedor (indisponível ou saiu da planilha).');
     if (p.candidatos.length > 1) r.avisos.unshift(`${p.candidatos.length} itens aprovados têm este EAN: confira se é o certo.`);
     return { p, l, r };

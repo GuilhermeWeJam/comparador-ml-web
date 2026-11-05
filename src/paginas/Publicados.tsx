@@ -1,5 +1,6 @@
 // Publicados: itens aprovados que já foram anunciados no Mercado Livre. Dá para desfazer e voltar o item para Aprovados.
 import { useEffect, useMemo, useState, type ReactNode } from 'react';
+import { AlertaEnvio } from '../componentes/AlertaEnvio';
 import { ROTULO_ANUNCIO, precoDoAnuncio } from '../componentes/FotosMl';
 import { Botao, classeInput, Etiqueta } from '../componentes/ui';
 import { premissasPara, type Contexto } from '../nucleo/analise';
@@ -105,7 +106,7 @@ function LinhaPublicado({ l, abrir }: { l: Linha; abrir: () => void }) {
     <tr className="cursor-pointer border-b border-slate-100 align-middle hover:bg-blue-50/50" data-testid="linha-publicado" onClick={abrir} title="Ver a conta da venda">
       <td className="px-3 py-2"><Foto url={p.imagemUrl} classe="h-18 w-18" ampliar /></td>
       <td className="px-3 py-2">
-        <div className="font-medium leading-snug">{l.item.nome}</div>
+        <div className="font-medium leading-snug">{l.item.nome} <AlertaEnvio alertas={l.a.alertas} /></div>
         <div className="text-xs text-slate-500">SKU {p.sku}{l.item.q > 1 ? ` · kit de ${l.item.q}` : ''} · publicado em {data(l.anot?.publicadoEm, true)}</div>
         {l.situacao !== 'aprovado' && <Etiqueta cor="laranja">a decisão não está mais como aprovado</Etiqueta>}
       </td>
