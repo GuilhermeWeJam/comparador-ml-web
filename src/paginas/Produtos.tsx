@@ -167,7 +167,7 @@ export function Produtos({ aba }: { aba: 'produtos' | 'kits' | 'aprovados' }) {
       <input type="checkbox" aria-label="Selecionar para comparar" checked={selecionados.includes(l.id)}
         onChange={(e) => setSelecionados((s) => (e.target.checked ? [...s, l.id].slice(-4) : s.filter((x) => x !== l.id)))} onClick={(e) => e.stopPropagation()} />
     ) },
-    { id: 'foto', titulo: '', largura: aba === 'aprovados' ? '80px' : '48px', render: (l) => <Foto url={l.item.produto.imagemUrl} classe={aba === 'aprovados' ? 'h-18 w-18' : 'h-10 w-10'} ampliar={aba === 'aprovados'} /> },
+    { id: 'foto', titulo: '', largura: aba === 'aprovados' ? '136px' : '96px', render: (l) => <Foto url={l.item.produto.imagemUrl} classe={aba === 'aprovados' ? 'h-28 w-28' : 'h-20 w-20'} ampliar={aba === 'aprovados'} /> },
     { id: 'produto', titulo: 'Produto', largura: 'minmax(280px,2.4fr)', fixa: true, render: (l) => <CelulaProduto l={l} anotar={dados.anotar} /> },
     ...(aba === 'aprovados' ? [{ id: 'fotosml', titulo: 'Fotos para o ML', largura: '240px', render: (l: Linha) => <CampoFotos linha={l} compacto /> },
       { id: 'anuncio', titulo: 'Anúncio no ML', largura: '200px', fixa: true, render: (l: Linha) => <><EscolhaAnuncio linha={l} /><BotaoPublicar linha={l} /></> }] : []),
