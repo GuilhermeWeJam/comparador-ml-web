@@ -3,6 +3,7 @@ import { useVirtualizer } from '@tanstack/react-virtual';
 import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import { Comparar } from '../componentes/Comparar';
 import { Detalhe } from '../componentes/Detalhe';
+import { AlertaEnvio } from '../componentes/AlertaEnvio';
 import { BotaoPublicar, CaixaEans, CampoFotos, EscolhaAnuncio, ROTULO_ANUNCIO, separarFotos } from '../componentes/FotosMl';
 import type { AnuncioMl } from '../nucleo/tipos';
 import { FilaPesquisa } from '../componentes/FilaPesquisa';
@@ -364,7 +365,7 @@ const SIT: Record<string, { rotulo: string; cor: string }> = {
 
 function CelulaProduto({ l, anotar }: { l: Linha; anotar: (id: string, m: { potencial: boolean }) => Promise<void> }) {
   const p = l.item.produto;
-  const alertas = l.a.alertas.filter((a) => a.nivel !== 'info');
+  const alertas = l.a.alertas.filter((a) => a.nivel !== 'info' && a.tipo !== 'Envio');
   return (
     <div className="min-w-0">
       <div className="flex items-start gap-1.5">
@@ -374,6 +375,7 @@ function CelulaProduto({ l, anotar }: { l: Linha; anotar: (id: string, m: { pote
       </div>
       <div className="mt-0.5 truncate text-xs text-slate-500">{p.sku} · {p.categoria || '—'} · {p.fornecedor || '—'}{p.uf ? ` (${p.uf})` : ''}</div>
       <div className="mt-1 flex flex-wrap gap-1">
+        <AlertaEnvio alertas={l.a.alertas} />
         {SIT[l.situacao] && <Etiqueta cor={SIT[l.situacao].cor}>{SIT[l.situacao].rotulo}</Etiqueta>}
         {l.revisar.length > 0 && <Etiqueta cor="vermelho" titulo={l.revisar.join('\n')}>Revisar</Etiqueta>}
         {l.kitRec && <Etiqueta cor="roxo" titulo={l.kitRec.motivos.join('\n')}>Melhor em kit de {l.kitRec.q}</Etiqueta>}

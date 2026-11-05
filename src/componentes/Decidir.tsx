@@ -2,6 +2,7 @@
 import { useState } from 'react';
 import type { Linha } from '../dados/linhas';
 import { useDados } from '../dados/store';
+import { restricaoDeEnvio } from '../nucleo/alertas';
 import { VEREDITOS } from '../nucleo/analise';
 import type { TipoDecisao } from '../nucleo/tipos';
 import { Botao, Campo, classeInput, Modal } from './ui';
@@ -22,6 +23,7 @@ export function contraria(l: Linha, acao: AcaoDecisao): boolean {
 export function Decidir({ linha, acao, fechar }: { linha: Linha; acao: AcaoDecisao; fechar: () => void }) {
   const { decidir, avisar } = useDados();
   const discorda = contraria(linha, acao);
+  const envio = acao === 'aprovado' ? restricaoDeEnvio(linha.a.alertas) : undefined;
   const motivos = acao === 'reprovado' ? MOTIVOS_REPROVAR : acao === 'adiado' ? MOTIVOS_ADIAR : MOTIVOS_APROVAR;
   const [motivo, setMotivo] = useState('');
   const [detalhe, setDetalhe] = useState('');
@@ -50,6 +52,12 @@ export function Decidir({ linha, acao, fechar }: { linha: Linha; acao: AcaoDecis
       <Botao variante={acao === 'reprovado' ? 'perigo' : 'primario'} onClick={confirmar} disabled={salvando || (obrigatorio && !motivo) || (motivo === 'Outro' && !detalhe.trim())}>Confirmar</Botao>
     </>}>
       <p className="mb-3 text-sm text-slate-700"><b>{linha.item.nome}</b></p>
+      {envio && (
+        <div className="mb-3 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-900" data-testid="aviso-envio">
+          <b>Este produto não pode ser enviado pelo Mercado Envios.</b> {envio.classe} · {envio.nome} (encontrado “{envio.termo}” no nome).
+          <div className="mt-1 text-xs text-red-800">Exemplos da classe: {envio.exemplos} Confirme com o fornecedor antes de aprovar.</div>
+        </div>
+      )}
       {discorda && linha.d && (
         <p className="mb-3 rounded-lg bg-amber-50 px-3 py-2 text-sm text-amber-900">
           O veredito sugerido é <b>{VEREDITOS[linha.d.veredito].rotulo}</b>. Para decidir diferente, diga o motivo: isso ajuda a ajustar os pesos das notas.

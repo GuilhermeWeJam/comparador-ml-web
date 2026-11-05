@@ -110,6 +110,8 @@ export interface Alerta {
   nivel: NivelAlerta;
   tipo: string;
   texto: string;
+  /** só no alerta 'Envio': a classe da blacklist do Mercado Envios que o produto bateu */
+  restricao?: { classe: string; nome: string; exemplos: string; termo: string };
 }
 
 export type Concorrentes = '1-3' | '4-10' | '10+';

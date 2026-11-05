@@ -1,5 +1,6 @@
 // Alertas de regulação e logística, a partir do nome, categoria e peso do item.
 // É uma triagem pelo nome: confirme sempre com o fornecedor.
+import { restricaoEnvio } from './blacklistEnvio';
 import { maiorLadoKit, tamanho } from './calc';
 import type { Alerta, Item, NivelAlerta } from './tipos';
 
@@ -55,6 +56,14 @@ export function analisarAlertas(item: Item, ladoMax: number): Alerta[] {
     else if (ladoMax > 0 && lado > ladoMax)
       out.push({ nivel: 'bloqueio', tipo: 'Tamanho', texto: `${item.q > 1 ? 'A caixa do kit tem' : 'Tem'} um lado de ${Math.round(lado)} cm: passa do limite de ${ladoMax} cm.` });
   }
+  // blacklist do Mercado Envios (src/nucleo/blacklistEnvio.ts)
+  const env = restricaoEnvio(nome, p.categoria);
+  if (env) out.push({
+    nivel: 'bloqueio',
+    tipo: 'Envio',
+    texto: `Não pode ser enviado pelo Mercado Envios: ${env.classe} · ${env.nome} (encontrado "${env.termo}"). Confirme com o fornecedor.`,
+    restricao: env,
+  });
   const vistos = new Set<string>();
   for (const r of REGRAS) {
     const bate = r.re ? r.re.test(nome) : r.teste!(p.categoria, nome, item.peso);
@@ -65,11 +74,13 @@ export function analisarAlertas(item: Item, ladoMax: number): Alerta[] {
     vistos.add(r.tipo + r.texto);
     out.push({ nivel: r.nivel, tipo: r.tipo, texto: r.texto });
   }
-  out.sort((a, b) => ORDEM[a.nivel] - ORDEM[b.nivel]);
+  out.sort((a, b) => ORDEM[a.nivel] - ORDEM[b.nivel] || Number(b.tipo === 'Envio') - Number(a.tipo === 'Envio'));
   return out;
 }
 
 export const temRestrito = (alertas: Alerta[]) => alertas.some((a) => a.tipo === 'Restrito');
+/** Produto na blacklist do Mercado Envios. */
+export const restricaoDeEnvio = (alertas: Alerta[]) => alertas.find((a) => a.tipo === 'Envio')?.restricao;
 export const temFragil = (alertas: Alerta[]) => alertas.some((a) => a.tipo === 'Frágil');
 /** Alerta de certificação ou marca (Anatel, INMETRO, ANVISA, Licenciado). */
 export const temRegulado = (alertas: Alerta[]) => alertas.some((a) => ['Anatel', 'INMETRO', 'ANVISA', 'Licenciado'].includes(a.tipo));

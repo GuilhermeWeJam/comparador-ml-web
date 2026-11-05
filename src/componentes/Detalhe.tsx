@@ -9,6 +9,7 @@ import { analisarTitulo, LIMITE_TITULO, sugerirTitulo } from '../nucleo/titulo';
 import type { Pesquisa } from '../nucleo/tipos';
 import { brl, data, kg, lerNumero, nomeCurto, pct } from '../util/formato';
 import { Decidir, registrarDecisao, type AcaoDecisao } from './Decidir';
+import { restricaoDeEnvio } from '../nucleo/alertas';
 import { FormPesquisa } from './FormPesquisa';
 import { BotaoPublicar, CampoFotos, EscolhaAnuncio } from './FotosMl';
 import { Botao, classeInput, Etiqueta, NotaBadge, VereditoBadge } from './ui';
@@ -124,7 +125,8 @@ export function Detalhe({ linha, ctx, fechar, aoMontarKit, aoEditar }: {
   }
 
   async function aprovar() {
-    if (linha.d && linha.d.veredito === 'descartar') { setDecisao('aprovado'); return; }
+    // veredito Descartar ou produto na blacklist do Mercado Envios: abre a confirmação antes de aprovar
+    if ((linha.d && linha.d.veredito === 'descartar') || restricaoDeEnvio(linha.a.alertas)) { setDecisao('aprovado'); return; }
     await registrarDecisao(decidir, linha, 'aprovado');
     avisar(`${item.nome}: aprovado.`);
   }
